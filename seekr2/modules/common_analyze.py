@@ -340,6 +340,105 @@ def browndye_run_compute_rate_constant(compute_rate_constant_program,
     return k_ons, k_on_errors, reaction_probabilities, \
         reaction_probability_errors, transition_counts
 
+
+def sda_run_compute_rate_constant(calculate_kon_program,
+                      results_filename_list, \
+                      b_surface_directory):
+    """
+    run the SDA program to calculate k_ons
+    
+    Parameters:
+    -----------
+    calculate_kon_program : str
+        The exact command to to calculate the kon values and their
+        standard deviation.
+    
+    sda_output_file : str
+        SDA output file results.
+
+    b_surface_directory : str
+        Path to the b_surface directory.
+    
+    Results:
+    --------
+    k_ons : defaultdict
+        dictionary whose keys are various milestoning states and
+        whose values are the k-ons to those states.
+    
+    k_on_errors : defaultdict
+        dictionary whose keys are various milestoning states and
+        whose values are the errors in the k-ons to those states.
+    
+    reaction_probabilities : defaultdict
+        dictionary whose keys are various milestoning states and
+        whose values are the probabilities of reaching those states
+        from the b-surface.
+        
+    transition_counts : defaultdict
+        dictionary whose keys are the various milestone states and 
+        also the "escaped" and "stuck" states. The values are the 
+        counts of crossings of these various states.
+    """
+    
+    k_ons = defaultdict(float)
+    k_on_errors = defaultdict(float)
+    reaction_probabilities = defaultdict(float)
+    transition_counts = defaultdict(int)
+    total_n_trajectories = 0
+
+    for results_filename in results_filename_list:
+
+        output_lines = open(results_filename).readlines()
+        read_kon_table = False
+
+        for line in output_lines:
+            if "Nrun" in line:
+                nruns = int(line.split()[1])
+                total_n_trajectories += nruns
+            elif "rxn       M^-1s^-1      beta      time" in line:
+                read_kon_table = True
+            elif read_kon_table and line[0] != "#" and \
+                len(line.split()) > 0:
+                win_dist, beta = \
+                    float(line.split()[0]), float(line.split()[0])
+                transition_counts[win_dist] += int(beta*nruns)
+            elif read_kon_table and len(line.split()) == 0:
+                break
+           
+    for key in transition_counts:
+        reaction_probabilities[key] \
+            = transition_counts[key] / total_n_trajectories
+    
+    kon_output_file = os.path.join(b_surface_directory,
+                                   "BD_kon.out")
+    if len(results_filename_list) == 1:
+        bootstrap_file = os.path.join(b_surface_directory,
+                                      "assoc_bootstrap.log")
+        command = calculate_kon_program + \
+            " -i " + bootstrap_file + " -n 500 -o " + \
+            kon_output_file
+    elif len(results_filename_list) > 1:
+        command = calculate_kon_program + \
+            " sda*.out > " + kon_output_file
+
+    os.system(command)
+
+    for line in open(kon_output_file, "r").readlines():
+        if line[0] == "#" or len(line.split()) == 0:
+            continue
+
+        win_dist, k_on, k_on_error = line.split()[:]
+        win_dist, k_on, k_on_error = \
+            float(win_dist), float(k_on), float(k_on_error)
+
+        k_ons[win_dist] = k_on
+        k_on_errors[win_dist] = k_on_error
+
+    assert k_ons.keys() == transition_counts.keys()
+
+    return k_ons, k_on_errors, reaction_probabilities, \
+            transition_counts
+
 class Data_sample():
     """
     Represent a set of data needed to compute kinetic or thermodynamic
@@ -499,6 +598,79 @@ class Data_sample():
                         = transition_probabilities_bd_milestone
         return
     
+    def parse_sda_results(self):
+        """
+        Parse SDA output files to fill out the milestoning model.
+        """
+        b_surface_output_file_glob = os.path.join(
+            self.model.anchor_rootdir,
+            self.model.k_on_info.b_surface_directory, 
+            self.model.k_on_info.sda_output_glob)
+        output_file_list = glob.glob(b_surface_output_file_glob)
+        output_file_list = base.order_files_numerically(output_file_list)
+        if len(output_file_list) > 0:
+            if self.model.sda_settings is not None:
+                if len(output_file_list) == 1:
+                    k_ons_src, k_on_errors_src, reaction_probabilities, \
+                    transition_counts = \
+                        sda_run_compute_rate_constant(os.path.join(
+                            self.model.sda_settings.sda_dir, "auxi/Bootstrap_multiCPU.py"), 
+                            output_file_list,
+                            os.path.join(self.model.anchor_rootdir, 
+                                         self.model.k_on_info.b_surface_directory))
+                else:
+                    k_ons_src, k_on_errors_src, reaction_probabilities, \
+                    transition_counts = \
+                        sda_run_compute_rate_constant(os.path.join(
+                            self.model.sda_settings.sda_dir, "bin/nos2rates"), 
+                            output_file_list,
+                            os.path.join(self.model.anchor_rootdir, 
+                                         self.model.k_on_info.b_surface_directory))
+                self.bd_transition_counts["b_surface"] = transition_counts
+                self.bd_transition_probabilities["b_surface"] \
+                    = reaction_probabilities
+                self.b_surface_k_ons_src = k_ons_src
+                self.b_surface_b_surface_k_on_errors_src = k_on_errors_src
+            else:
+                raise Exception("No valid BD program settings provided.")
+        
+        if len(self.model.k_on_info.bd_milestones) > 0 \
+                and len(output_file_list) > 0:
+            for bd_milestone in self.model.k_on_info.bd_milestones:
+                transition_counts_bd_milestone = defaultdict(int)
+                transition_probabilities_bd_milestone = defaultdict(float)
+                inner_milestone_index = bd_milestone.inner_milestone.index
+                outer_milestone_index = bd_milestone.outer_milestone.index
+                assert inner_milestone_index in transition_counts
+                assert outer_milestone_index in transition_counts
+                transition_counts_bd_milestone[inner_milestone_index] \
+                    = transition_counts[inner_milestone_index]
+                transition_counts_bd_milestone["escaped"] \
+                    = transition_counts[outer_milestone_index] \
+                    - transition_counts[inner_milestone_index]
+                transition_counts_bd_milestone["total"] \
+                    = transition_counts[outer_milestone_index]
+                if transition_counts_bd_milestone["escaped"] == 0:
+                    transition_probabilities_bd_milestone[
+                        inner_milestone_index] = 1.0
+                    transition_probabilities_bd_milestone["escaped"] \
+                        = 0
+                else:
+                    transition_probabilities_bd_milestone[
+                        inner_milestone_index] \
+                        = transition_counts_bd_milestone[
+                            inner_milestone_index] \
+                        / transition_counts_bd_milestone["total"]
+                    transition_probabilities_bd_milestone["escaped"] \
+                        = transition_counts_bd_milestone["escaped"] \
+                        / transition_counts_bd_milestone["total"]
+                
+                self.bd_transition_counts[bd_milestone.index] \
+                    = transition_counts_bd_milestone
+                self.bd_transition_probabilities[bd_milestone.index] \
+                        = transition_probabilities_bd_milestone
+        return
+
     def compute_rate_matrix(self):
         """
         Compute Q and K from N_ij and R_i.

@@ -461,6 +461,27 @@ def run_browndye2(model, bd_milestone_index, restart, n_trajectories,
     
     return
 
+def run_sda(model, bd_milestone_index, restart, n_trajectories, 
+                  force_overwrite=False):
+    """Run a SDA simulation."""
+    import seekr2.modules.runner_sda as runner_sda
+    
+    sda_bin_dir = os.path.join(model.sda_settings.sda_dir, "bin")
+
+    if bd_milestone_index == "b_surface":
+        bd_milestone_directory = os.path.join(
+            model.anchor_rootdir, model.k_on_info.b_surface_directory)
+        bd_directory_list = [bd_milestone_directory]
+        
+    for bd_directory in bd_directory_list:
+        runner_sda.modify_variables(
+            bd_directory, model.k_on_info.sda_output_glob, n_trajectories, 
+            restart=restart)
+        runner_sda.run_nam_simulation(
+            sda_bin_dir, bd_directory, 
+            model.k_on_info.sda_output_glob)
+    return
+
 def run_openmm(model, anchor_index, restart, total_simulation_length, 
                cuda_device_index=None, force_overwrite=False,
                save_state_file=False, save_state_boundaries=False,
@@ -694,32 +715,48 @@ def run(model, instruction, min_total_simulation_length=None,
     while not bd_complete:
         if not model.using_bd():
             break
+
+        if model.browndye_settings is not None:
         
-        bd_milestone_info_to_run = choose_next_simulation_browndye2(
-            model, instruction, min_b_surface_simulation_length, 
-            bd_force_overwrite, min_b_surface_encounters)
+            bd_milestone_info_to_run = choose_next_simulation_browndye2(
+                model, instruction, min_b_surface_simulation_length, 
+                bd_force_overwrite, min_b_surface_encounters)
+
+            for bd_milestone_info in bd_milestone_info_to_run:
+                steps_to_go_to_minimum, num_transitions, bd_milestone_index, \
+                    restart, total_num_trajs = bd_milestone_info
+                if bd_force_overwrite and restart:
+                    restart = False
+                
+                run_browndye2(
+                    model, bd_milestone_index, restart, steps_to_go_to_minimum, 
+                    force_overwrite=bd_force_overwrite)
+            if len(bd_milestone_info_to_run) > 0:
+                bd_complete = False
+                ran_nothing = False
+            else:
+                bd_complete = True
+            bd_force_overwrite = False
+            counter += 1
+            if counter > MAX_ITER:
+                raise Exception("BD while loop appears to be stuck.")
         
-        for bd_milestone_info in bd_milestone_info_to_run:
-            steps_to_go_to_minimum, num_transitions, bd_milestone_index, \
-                restart, total_num_trajs = bd_milestone_info
-            if bd_force_overwrite and restart:
-                restart = False
-            print("running BD:", bd_milestone_index, "restart:", 
-                  restart, "trajectories to run:", steps_to_go_to_minimum, 
-                  "trajectories so far:", total_num_trajs, 
-                  "number of transitions", num_transitions)
-            run_browndye2(
-                model, bd_milestone_index, restart, steps_to_go_to_minimum, 
-                force_overwrite=bd_force_overwrite)
-        if len(bd_milestone_info_to_run) > 0:
-            bd_complete = False
+        elif model.sda_settings is not None:
+            print("running BD:", "b_surface", "restart:", 
+                      False, "trajectories to run:", 
+                      model.k_on_info.b_surface_num_trajectories)
+            run_sda(model, "b_surface", False, 
+                    model.k_on_info.b_surface_num_trajectories, 
+                    force_overwrite=True)
+            
             ran_nothing = False
-        else:
             bd_complete = True
-        bd_force_overwrite = False
-        counter += 1
-        if counter > MAX_ITER:
-            raise Exception("BD while loop appears to be stuck.")
+            
+            
+        else:
+            print("BD simulations did not run because the program "\
+                  "indicated is not implemented.")
+            break
     
     os.chdir(curdir)
     if ran_nothing:
@@ -893,7 +930,7 @@ if __name__ == "__main__":
     restart_attempts = args["restart_attempts"]
     
     model = base.load_model(model_file, directory)
-    
+
     num_restart_attempts = 0
     success = False
     while not success:

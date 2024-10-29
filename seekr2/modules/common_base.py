@@ -18,6 +18,7 @@ from abserdes import Serializer
 
 # A glob for BrownDye output files
 BROWNDYE_OUTPUT = "results*.xml"
+SDA_OUTPUT = "sda*.out"
 
 def strBool(bool_str):
     """
@@ -616,7 +617,65 @@ class Browndye_settings(Serializer):
         self.ghost_indices_rec = []
         self.ghost_indices_lig = []
         return
+
+class SDA_settings(Serializer):
+    """
+    Read and parse the outputs from the SDA program, which runs
+    the BD stage of the SEEKR2 calculation
     
+    Attributes:
+    -----------
+    sda_dir : str, Default ""
+        A path to the SDA programs. If SDA's directory 
+        has been added to system $PATH, then this string can be empty.
+    solutes : list
+        A list of Solute() objects that contains the properties of the 
+        brownian solutes.
+    solvent : Solvent()
+        Solvent object that contains the properties of the solvent such as
+        temperature, dielectric constant, ions...
+    atoms : list
+        List of Atom() objects to modify VdW radius and test charges
+        properites.
+    """
+    
+    def __init__(self):
+        self.sda_dir = ""
+        self.solutes = []
+        self.solvent = Solvent()
+        self.atoms = []
+        return
+
+class Solvent(Serializer):
+    """
+    Parameters to represent the solvent within the BD simulation.
+    
+    Attributes:
+    -----------
+    debye_length : float
+        The Debye length is a distance inversely related to the 
+        strength and concentration of ions in solution.
+    dielectric : float, Default 78.0
+        The dielectric of solvent, relative to vacuum permittivity.
+    relative_viscosity : float, Default 1.0
+        Relative to water viscosity.
+    kT : float
+        Thermal energy relative to Boltzmann's constant times 298 K.
+    desolvation_parameter : float, Default 1.0
+        Factor that multiplies desolvation energy.
+    ions : list
+        A list of Ion() objects for APBS input
+    """
+    
+    def __init__(self):
+        self.dielectric = 78.0
+        self.temperature = 298.15
+        self.relative_viscosity = 1.0
+        self.kT = -1.0
+        self.desolvation_parameter = 1.0
+        self.ions = []
+        return
+
 class Amber_params(Serializer):
     """
     Contains parameters for an amber simulation.
@@ -773,6 +832,155 @@ class Ion(Serializer):
         self.conc = -1.0
         return
 
+class Solute(Serializer):
+
+    """
+    A solute for input to SDA
+    
+    Attributes:
+    ----------
+
+    type : string
+        Indicates the type of molecule to be simulated (protein or \
+        small organic compound).
+    apbs_grid_dime : integer
+        Size of the APBS grid dimensions.
+    apbs_grid_spacing : float
+        Space between the points conforming the grid.
+    dielectric : float
+        Dielectric constant of the solute.
+    solute_grid : Solute_Grid()
+        Solute grid object whose attributes will be used to build \
+        an SDA input file.
+    """
+
+    def __init__(self):
+        self.type = ""
+        self.apbs_grid_dime = -1
+        self.apbs_grid_spacing = -1
+        self.dielectric = -1
+        self.solute_grid = Solute_Grid()
+
+class Solute_Grid(Serializer):
+
+    """
+    A solute for input to SDA
+    
+    Attributes:
+    -----------
+    nb_solute : integer, Default 1
+        Number of solutes of this type.
+    pdb_filename : string
+        Pathway where the pdb file is located.
+    diffusion_trans : float or None. Default None.
+        Translational diffusion coefficient value in A^2/ps
+    diffusion_rotat : float or None. Default None.
+        Rotational diffusion coefficient value in rad/ps
+    real_net_charge: float or None. Default None.
+        Total net formal charge of the solute. 
+        Used if the Debye field is activated.
+    surface_charge_dens: float or None. Default None.
+        If the solute is a surface, this option can be used to define
+        an average charge density for surface. The interaction with other solutes 
+        is then modelled using a Debye-Hueckel sphere approximation where 
+        spherical charge solutes interact with a homogeneously charged surface.
+    rotate : integer, default 1.
+        Defines whether the solute can rotate or not. If 0,
+        rotational diffusion coefficient is not used.
+    surface: integer, Default 0.
+        Defines if the solute is a surface.
+    flex: integer or None, Default None
+        Defines if a conformational ensamble is read for the solute.
+    image_charge: integer or None, Default None
+        Defines if the electrostatic image charge of this solute(s) must be computed. 
+        It is relevant in the case that one solute is a metal surface.
+    dh_radius: float or None, Default None
+        Indicates the radius used to represent the solute cavity in the Debye-Hueckel 
+        sphere charge model.
+    vol_radius: float or None, Default None
+        Indicates the radius used for calculating the local occupied volume fractions 
+        of the mean-field hydrodynamic interaction model.
+    list_conformation: string
+        Plain text file that indicates the pathways and names of the different grids
+        and population of each conformer of the solute.
+    total_conf: integer or None, Default None
+        total number of conformations of the solute
+    method: string (random, minimum, metropolis) or None, Default None.
+        method to be used for changing the conformations on the fly. Options:
+            - random: choose a random conformation if nearest > 1. Energies are
+            not evaluated.
+            - minimum: the minimum energy between actual and the closest conformations
+            is selected if nearest = 1
+            - metropolis: Metropolis-Hastings algorithm is applied to choose a new
+            conformation based on the population and the intermolecular energy with other
+            solutes.
+    initial_conf: integer, Default -1.
+        selects the conformation at the beginning of each trajectory. If value is -1, the
+        conformation will be selected randomly.
+    frequency: float, Default 100.0
+        Delay time between changes in conformation (in ps).
+        If SDAMM, the delay is computed as a Gaussian random with average frequency
+        and standard deviation std_frequency to avoid syncronisation between solutes.
+    std_frequency: float, Default 0.0
+        Standard deviation frequency (in ps).
+    epf : string
+        Pathway and name of the electrostatic potential grid file
+    qef : string
+        Pathway and name of the effective charges file
+    edf : string
+        Pathway and name of the electrostatic desolvation grid file
+    hdf : string
+        Pathway and name of the hydrophobic desolvation grid file
+    lj_repf : string
+        Pathway and name of the lennard-jones repulsion grid file
+    """
+
+    def __init__(self):
+        self.nb_solute = 1
+        self.pdb_filename = ""
+        self.diffusion_trans = None
+        self.diffusion_rotat = None
+        self.real_net_charge = None
+        self.surface_charge_dens = None
+        self.rotate = 1
+        self.surface = 0
+        self.flex = None
+        self.image_charge = None
+        self.dh_radius = None
+        self.vol_radius = None
+        self.list_conformation = ""
+        self.total_conf = None
+        self.method = ""
+        self.initial_conf = -1
+        self.frequency = 100.0
+        self.std_frequency = 0.0
+        self.epf = ""
+        self.qef = ""
+        self.edf = ""
+        self.hdf = ""
+        self.lj_repf = ""
+        return
+
+class Atomic_parameters(Serializer):
+
+    """
+    VdW and test charge atomic parameters for specific atoms
+    
+    Attributes:
+    -----------
+    test_charges : dict or None, Default None
+        Contains the test charge information of all given atoms
+    vdw : dict or None, Default None
+        Contains the VdW radius information of all given atoms
+    """
+
+    def __init__(self):
+        self.vdw = None
+        self.test_charge = None
+        self.resname = None
+        self.type = None
+
+
 class K_on_info(Serializer):
     """
     Information needed to compute K-on-related quantities.
@@ -795,6 +1003,10 @@ class K_on_info(Serializer):
         A glob which can be used to select the output XML files
         produced by Browndye within the directory argument above.
         
+    sda_output_glob : str
+        A glob which can be used to select the output files
+        produced by SDA within the directory argument above.
+
     ions : list
         A list of Ion() objects which will be provided for APBS
         calculations.
@@ -805,6 +1017,7 @@ class K_on_info(Serializer):
         self.b_surface_directory = "b_surface"
         self.b_surface_num_trajectories = -1
         self.bd_output_glob = BROWNDYE_OUTPUT
+        self.sda_output_glob = SDA_OUTPUT
         self.ions = []
         return
 
@@ -824,6 +1037,10 @@ class BD_milestone(Serializer):
     bd_output_glob : str
         A glob for BrownDye output files containing transition info
         related to this milestone.
+
+    sda_output_glob : str
+        A glob which can be used to select the output files
+        produced by SDA within the directory argument above.
         
     name : str
         A unique name for this milestone
@@ -868,6 +1085,7 @@ class BD_milestone(Serializer):
         self.index = -1
         self.directory = ""
         self.bd_output_glob = BROWNDYE_OUTPUT
+        self.sda_output_glob = SDA_OUTPUT
         self.name = ""
         self.outer_milestone = None
         self.inner_milestone = None
@@ -979,6 +1197,10 @@ class Model(Serializer):
     browndye_settings : Browndye_settings
         The Browndye_settings() object for this model. It contains all
         the settings that could be used within a Browndye simulation.
+
+    sda_settings : SDA_settings
+        The SDA_settings() object for this model. It contains all the
+        settings that could be used within a SDA simulation.
         
     k_on_info : K_on_info
         The K_on_info() object which represents the settings and 
@@ -1003,6 +1225,7 @@ class Model(Serializer):
         self.namd_settings = None
         self.toy_settings = None
         self.browndye_settings = None
+        self.sda_settings = None
         self.k_on_info = None
         self.collective_variables = []
         self.anchors = []

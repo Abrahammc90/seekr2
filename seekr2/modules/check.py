@@ -739,11 +739,18 @@ def check_atom_selections_MD_BD(model):
     might start their numbering at 1 or another number."""
     if model.using_bd():
         b_surface_dir = os.path.join(
-            model.anchor_rootdir, model.k_on_info.b_surface_directory)
-        rec_pqr_path = os.path.join(
-            b_surface_dir, model.browndye_settings.receptor_pqr_filename)
-        lig_pqr_path = os.path.join(
-            b_surface_dir, model.browndye_settings.ligand_pqr_filename)
+                model.anchor_rootdir, model.k_on_info.b_surface_directory)
+
+        if model.browndye_settings is not None:
+            rec_pqr_path = os.path.join(
+                b_surface_dir, model.browndye_settings.receptor_pqr_filename)
+            lig_pqr_path = os.path.join(
+                b_surface_dir, model.browndye_settings.ligand_pqr_filename)
+        elif model.sda_settings is not None:
+            rec_pqr_path = os.path.join(
+                b_surface_dir, model.sda_settings.solutes[0].pqr_filename)
+            lig_pqr_path = os.path.join(
+                b_surface_dir, model.sda_settings.solutes[1].pqr_filename)
         rec_pqr_structure = parmed.load_file(rec_pqr_path)
         lig_pqr_structure = parmed.load_file(lig_pqr_path)
         for bd_index, bd_milestone in enumerate(model.k_on_info.bd_milestones):
@@ -761,6 +768,9 @@ def check_atom_selections_MD_BD(model):
                     print(warnstr1.format(bd_index, ligand_index, 
                                           lig_pqr_path))
                     return False
+
+             
+
     else:
         # No BD to check
         return True
@@ -838,10 +848,16 @@ def check_pqr_residues(model):
     if model.using_bd():
         b_surface_dir = os.path.join(
             model.anchor_rootdir, model.k_on_info.b_surface_directory)
-        rec_pqr_path = os.path.join(
-            b_surface_dir, model.browndye_settings.receptor_pqr_filename)
-        lig_pqr_path = os.path.join(
-            b_surface_dir, model.browndye_settings.ligand_pqr_filename)
+        if model.browndye_settings is not None:
+            rec_pqr_path = os.path.join(
+                b_surface_dir, model.browndye_settings.receptor_pqr_filename)
+            lig_pqr_path = os.path.join(
+                b_surface_dir, model.browndye_settings.ligand_pqr_filename)
+        elif model.sda_settings is not None:
+            rec_pqr_path = os.path.join(
+                b_surface_dir, model.sda_settings.solutes[0].pqr_filename)
+            lig_pqr_path = os.path.join(
+                b_surface_dir, model.sda_settings.solutes[1].pqr_filename)
         rec_pqr_structure = parmed.load_file(rec_pqr_path)
         lig_pqr_structure = parmed.load_file(lig_pqr_path)
         rec_residues = []
@@ -1236,6 +1252,28 @@ def check_for_stuck_BD(model):
                 return True
     return True
 
+def check_for_SDA_simulation(model):
+    """
+    Examine BD output to ensure that too many BD trajectories weren't
+    stuck.
+    """
+    if model.using_bd():
+        sda_output_file_glob = os.path.join(model.anchor_rootdir, \
+                                       model.k_on_info.b_surface_directory, \
+                                       model.k_on_info.sda_output_glob)
+        
+        output_file_list = glob.glob(sda_output_file_glob)
+
+        for sda_output_file in output_file_list:
+            sda_output_lines = open(sda_output_file, "r").readlines()
+
+            for line in sda_output_lines:
+                if "All your SDA runs/trajectories finished successfully" \
+                    in line:
+                    return True     
+
+    return False
+
 def check_post_simulation_all(model, long_check=False):
     """
     After the completion of the run stage, check simulation files
@@ -1269,7 +1307,11 @@ def check_post_simulation_all(model, long_check=False):
     
     # This check doesn't seem to be that helpful
     #check_passed_list.append(check_output_files_for_stuck_anchors(model))
-    check_passed_list.append(check_for_stuck_BD(model))
+    if model.browndye_settings is not None:
+        check_passed_list.append(check_for_stuck_BD(model))
+    elif model.sda_settings is not None:
+        check_passed_list.append(check_for_SDA_simulation(model))
+    
     
     no_failures = True
     for check_passed in check_passed_list:

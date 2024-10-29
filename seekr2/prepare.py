@@ -15,9 +15,10 @@ import seekr2.modules.filetree as filetree
 import seekr2.modules.check as check
 # Don't remove the following library imports - needed by deserializer
 from seekr2.modules.common_prepare import Browndye_settings_input, \
-    MMVT_input_settings, Elber_input_settings, Toy_settings_input
-from seekr2.modules.common_base import Ion, Amber_params, Forcefield_params, \
-    Charmm_params, Box_vectors
+    SDA_settings_input, MMVT_input_settings, Elber_input_settings, \
+    Toy_settings_input
+from seekr2.modules.common_base import Ion, Solute_Grid, Atomic_parameters, \
+    Amber_params, Forcefield_params, Charmm_params, Box_vectors, Solute
 from seekr2.modules.common_cv import Spherical_cv_anchor, Spherical_cv_input, \
     Tiwary_cv_anchor, Tiwary_cv_input, Tiwary_cv_distance_order_parameter, \
     Tiwary_cv_angle_order_parameter, Tiwary_cv_torsion_order_parameter, \
@@ -45,7 +46,12 @@ def prepare(model_input, force_overwrite=False):
                                                  force_overwrite)
     filetree.generate_filetree_bd(model, root_directory)
     filetree.copy_bd_files(model, model_input, root_directory)
-    common_prepare.generate_bd_files(model, root_directory)
+    if model_input.bd_program.lower() == "browndye":
+        common_prepare.generate_bd_files(model, root_directory)
+    elif model_input.bd_program.lower() == "sda":
+        common_prepare.generate_sda_files(model, root_directory)
+    else:
+        raise ValueError("BD program specified is not implemented")
     #model.serialize(xml_path)
     base.save_model(model, xml_path)
     os.chdir(curdir)

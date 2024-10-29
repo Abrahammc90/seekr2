@@ -496,7 +496,10 @@ class Analysis:
         self.main_data_sample.calculate_pi_alpha()
         self.main_data_sample.fill_out_data_quantities()
         if self.model.using_bd():
-            self.main_data_sample.parse_browndye_results()
+            if self.model.browndye_settings is not None:
+                self.main_data_sample.parse_browndye_results()
+            elif self.model.sda_settings is not None:
+                self.main_data_sample.parse_sda_results()
         self.main_data_sample.compute_rate_matrix()
         self.main_data_sample.calculate_thermodynamics()
         self.main_data_sample.calculate_extra_thermodynamics()
@@ -572,7 +575,10 @@ class Analysis:
         uncertainties. Applies to systems using Elber milestoning.
         """
         if self.model.using_bd():
-            self.main_data_sample.parse_browndye_results()
+            if self.model.browndye_settings is not None:
+                self.main_data_sample.parse_browndye_results()
+            elif self.model.sda_settings is not None:
+                self.main_data_sample.parse_sda_results()
         self.main_data_sample.compute_rate_matrix()
         self.main_data_sample.calculate_thermodynamics()
         self.main_data_sample.calculate_kinetics()
