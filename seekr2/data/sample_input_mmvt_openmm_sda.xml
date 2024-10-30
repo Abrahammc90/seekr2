@@ -292,6 +292,6 @@
                 <conc>0.0</conc>
             </ion>
         </ions>
-        <num_b_surface_trajectories>500</num_b_surface_trajectories>
+        <num_b_surface_trajectories>100000</num_b_surface_trajectories>
     </sda_settings_input>
 </model_input>

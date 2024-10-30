@@ -309,7 +309,7 @@ def monte_carlo_milestoning_error(
                         bd_sample_from_normal=True)
                 elif model.sda_settings is not None:
                     new_data_sample.parse_sda_results(
-                        bd_sample_from_normal=True)
+                        bootstrap=False)
             new_data_sample.calculate_thermodynamics()
             new_data_sample.calculate_kinetics()
             p_i_list.append(new_data_sample.p_i)

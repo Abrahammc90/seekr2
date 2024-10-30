@@ -499,7 +499,7 @@ class Analysis:
             if self.model.browndye_settings is not None:
                 self.main_data_sample.parse_browndye_results()
             elif self.model.sda_settings is not None:
-                self.main_data_sample.parse_sda_results()
+                self.main_data_sample.parse_sda_results(bootstrap=True)
         self.main_data_sample.compute_rate_matrix()
         self.main_data_sample.calculate_thermodynamics()
         self.main_data_sample.calculate_extra_thermodynamics()
@@ -578,7 +578,7 @@ class Analysis:
             if self.model.browndye_settings is not None:
                 self.main_data_sample.parse_browndye_results()
             elif self.model.sda_settings is not None:
-                self.main_data_sample.parse_sda_results()
+                self.main_data_sample.parse_sda_results(bootstrap=True)
         self.main_data_sample.compute_rate_matrix()
         self.main_data_sample.calculate_thermodynamics()
         self.main_data_sample.calculate_kinetics()

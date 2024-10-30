@@ -343,7 +343,7 @@ def browndye_run_compute_rate_constant(compute_rate_constant_program,
 
 def sda_run_compute_rate_constant(calculate_kon_program,
                       results_filename_list, \
-                      b_surface_directory):
+                      b_surface_directory, bootstrap=False):
     """
     run the SDA program to calculate k_ons
     
@@ -378,6 +378,10 @@ def sda_run_compute_rate_constant(calculate_kon_program,
         dictionary whose keys are the various milestone states and 
         also the "escaped" and "stuck" states. The values are the 
         counts of crossings of these various states.
+    
+    bootstrap : boolean, Default False
+        if true, the SDA tool to compute the standard deviation
+        with bootstrapp analysis will be used.
     """
     
     k_ons = defaultdict(float)
@@ -395,12 +399,16 @@ def sda_run_compute_rate_constant(calculate_kon_program,
             if "Nrun" in line:
                 nruns = int(line.split()[1])
                 total_n_trajectories += nruns
+            elif line.startswith("b_rate"):
+                kb = float(line.split()[1])
+            elif line.startswith("c_rate"):
+                kc = float(line.split()[1])
             elif "rxn       M^-1s^-1      beta      time" in line:
                 read_kon_table = True
             elif read_kon_table and line[0] != "#" and \
                 len(line.split()) > 0:
                 win_dist, beta = \
-                    float(line.split()[0]), float(line.split()[0])
+                    float(line.split()[0]), float(line.split()[2])
                 transition_counts[win_dist] += int(beta*nruns)
             elif read_kon_table and len(line.split()) == 0:
                 break
@@ -408,30 +416,38 @@ def sda_run_compute_rate_constant(calculate_kon_program,
     for key in transition_counts:
         reaction_probabilities[key] \
             = transition_counts[key] / total_n_trajectories
+        beta = reaction_probabilities[key]
+        k_ons[key] = kb*beta / (1 - (1-beta) * kb/kc)
     
     kon_output_file = os.path.join(b_surface_directory,
                                    "BD_kon.out")
-    if len(results_filename_list) == 1:
+    
+    if len(results_filename_list) == 1 and bootstrap:
+        print("Calculating BD kon standard deviation with bootstrap")
         bootstrap_file = os.path.join(b_surface_directory,
                                       "assoc_bootstrap.log")
+        bootstrap_output = os.path.join(b_surface_directory,
+                                      "assoc_bootstrap.out")
         command = calculate_kon_program + \
             " -i " + bootstrap_file + " -n 500 -o " + \
-            kon_output_file
+            kon_output_file + " > " + bootstrap_output
+        os.system(command)
     elif len(results_filename_list) > 1:
+        print("Averaging BD kon and" + \
+              "calculating standard deviation")
         command = calculate_kon_program + \
             " sda*.out > " + kon_output_file
-
-    os.system(command)
+        os.system(command)
+    
 
     for line in open(kon_output_file, "r").readlines():
         if line[0] == "#" or len(line.split()) == 0:
             continue
 
-        win_dist, k_on, k_on_error = line.split()[:]
-        win_dist, k_on, k_on_error = \
-            float(win_dist), float(k_on), float(k_on_error)
+        win_dist, k_on_error = line.split()[0], line.split()[2]
+        win_dist, k_on_error = \
+            float(win_dist), float(k_on_error)
 
-        k_ons[win_dist] = k_on
         k_on_errors[win_dist] = k_on_error
 
     assert k_ons.keys() == transition_counts.keys()
@@ -598,7 +614,7 @@ class Data_sample():
                         = transition_probabilities_bd_milestone
         return
     
-    def parse_sda_results(self):
+    def parse_sda_results(self, bootstrap):
         """
         Parse SDA output files to fill out the milestoning model.
         """
@@ -617,7 +633,8 @@ class Data_sample():
                             self.model.sda_settings.sda_dir, "auxi/Bootstrap_multiCPU.py"), 
                             output_file_list,
                             os.path.join(self.model.anchor_rootdir, 
-                                         self.model.k_on_info.b_surface_directory))
+                                         self.model.k_on_info.b_surface_directory),
+                            bootstrap)
                 else:
                     k_ons_src, k_on_errors_src, reaction_probabilities, \
                     transition_counts = \
