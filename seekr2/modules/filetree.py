@@ -327,7 +327,7 @@ def copy_bd_files(model, input_model, rootdir):
         k_on_info = model.k_on_info
         b_surface_dir = os.path.join(rootdir, k_on_info.b_surface_directory)
 
-        if input_model.bd_program == "browndye":
+        if input_model.bd_program.lower() == "browndye":
             bd_settings = model.browndye_settings
             bd_input_settings = input_model.browndye_settings_input
             ligand_pqr_filename = os.path.basename(bd_settings.ligand_pqr_filename)
@@ -341,7 +341,7 @@ def copy_bd_files(model, input_model, rootdir):
                 b_surface_dir, receptor_pqr_filename)
             copyfile(os.path.expanduser(bd_input_settings.receptor_pqr_filename), 
                      receptor_pqr_dest_filename)
-        elif input_model.bd_program == "sda":
+        elif input_model.bd_program.lower() == "sda":
             bd_settings = model.sda_settings
             bd_input_settings = input_model.sda_settings_input
             for solute in bd_input_settings.solutes:

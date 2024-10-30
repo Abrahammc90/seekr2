@@ -1000,11 +1000,11 @@ def create_bd_milestones(model, model_input):
                 bd_milestone.receptor_indices \
                     = base.parse_xml_list(cv_input.bd_group1)
             else:
-                if model.bd_program.lower() == "browndye":
+                if model_input.bd_program.lower() == "browndye":
                     bd_milestone.receptor_indices  \
                         = base.parse_xml_list(
                             model_input.browndye_settings_input.receptor_indices)
-                elif model.bd_program.lower() == "sda":
+                elif model_input.bd_program.lower() == "sda":
                     bd_milestone.receptor_indices  \
                         = base.parse_xml_list(
                             model_input.sda_settings_input.receptor_indices)
@@ -1013,11 +1013,11 @@ def create_bd_milestones(model, model_input):
                 bd_milestone.ligand_indices \
                     = base.parse_xml_list(cv_input.bd_group2)
             else:
-                if model.bd_program.lower() == "browndye":
+                if model_input.bd_program.lower() == "browndye":
                     bd_milestone.ligand_indices \
                         = base.parse_xml_list(
                             model_input.browndye_settings_input.ligand_indices)
-                elif model.bd_program.lower() == "sda":
+                elif model_input.bd_program.lower() == "sda":
                     bd_milestone.ligand_indices \
                         = base.parse_xml_list(
                             model_input.sda_settings_input.ligand_indices)

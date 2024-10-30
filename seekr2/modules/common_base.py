@@ -642,38 +642,7 @@ class SDA_settings(Serializer):
     def __init__(self):
         self.sda_dir = ""
         self.solutes = []
-        self.solvent = Solvent()
         self.atoms = []
-        return
-
-class Solvent(Serializer):
-    """
-    Parameters to represent the solvent within the BD simulation.
-    
-    Attributes:
-    -----------
-    debye_length : float
-        The Debye length is a distance inversely related to the 
-        strength and concentration of ions in solution.
-    dielectric : float, Default 78.0
-        The dielectric of solvent, relative to vacuum permittivity.
-    relative_viscosity : float, Default 1.0
-        Relative to water viscosity.
-    kT : float
-        Thermal energy relative to Boltzmann's constant times 298 K.
-    desolvation_parameter : float, Default 1.0
-        Factor that multiplies desolvation energy.
-    ions : list
-        A list of Ion() objects for APBS input
-    """
-    
-    def __init__(self):
-        self.dielectric = 78.0
-        self.temperature = 298.15
-        self.relative_viscosity = 1.0
-        self.kT = -1.0
-        self.desolvation_parameter = 1.0
-        self.ions = []
         return
 
 class Amber_params(Serializer):

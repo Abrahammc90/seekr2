@@ -304,8 +304,12 @@ def monte_carlo_milestoning_error(
             new_data_sample.Q = Qnew
             new_data_sample.K = common_analyze.Q_to_K(Qnew)
             if model.using_bd():
-                new_data_sample.parse_browndye_results(
-                    bd_sample_from_normal=True)
+                if model.browndye_settings is not None:
+                    new_data_sample.parse_browndye_results(
+                        bd_sample_from_normal=True)
+                elif model.sda_settings is not None:
+                    new_data_sample.parse_sda_results(
+                        bd_sample_from_normal=True)
             new_data_sample.calculate_thermodynamics()
             new_data_sample.calculate_kinetics()
             p_i_list.append(new_data_sample.p_i)

@@ -113,13 +113,13 @@ def make_sda_grids(model, bd_directory, sda_dir):
 
     curdir = os.getcwd()
     print("moving to directory:", bd_directory)
-    assert model.sda_settings.solvent.ions is not None, \
+    assert model.k_on_info.ions is not None, \
             "Ions must be included for APBS calculations"
     os.chdir(bd_directory)
     print("creating SDA grids")
 
     ionic_strength = 0
-    for ion in model.sda_settings.solvent.ions:
+    for ion in model.k_on_info.ions:
         ionic_strength += ion.conc*ion.charge**2 / 2
 
     solute_idx = 0
@@ -135,7 +135,14 @@ def make_sda_grids(model, bd_directory, sda_dir):
         #Making APBS grids
         apbs_input = sim_sda.APBS_Input()
         apbs_input.solute = solute
-        apbs_input.solvent = model.sda_settings.solvent
+        apbs_input.temperature = model.temperature
+
+        for model_ion in model.k_on_info.ions:
+            bd_ion = sim_sda.Ion()
+            bd_ion.radius = model_ion.radius
+            bd_ion.charge = model_ion.charge
+            bd_ion.conc = model_ion.conc
+            apbs_input.solvent.ions.append(bd_ion)
 
         apbs_input.solute_pqr = pqr_filename
         apbs_input.solute_name = solute_name

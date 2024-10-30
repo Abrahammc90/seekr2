@@ -61,6 +61,7 @@ def create_host_guest_mmvt_model_input(root_dir, bd=True, ff="amber"):
     model_input.pressure = 1.0
     model_input.ensemble = "nvt"
     model_input.root_directory = root_dir
+    model_input.bd_program = "browndye"
     model_input.md_program = "openmm"
     model_input.constraints = "HBonds"
     model_input.rigidWater = True
@@ -196,6 +197,7 @@ def create_tiwary_mmvt_model_input(root_dir):
     model_input.pressure = 1.0
     model_input.ensemble = "nvt"
     model_input.root_directory = root_dir
+    model_input.bd_program = "browndye"
     model_input.md_program = "openmm"
     model_input.constraints = "HBonds"
     model_input.rigidWater = True
@@ -348,6 +350,7 @@ def create_planar_mmvt_model_input(root_dir):
     model_input.pressure = 1.0
     model_input.ensemble = "nvt"
     model_input.root_directory = root_dir
+    model_input.bd_program = "browndye"
     model_input.md_program = "openmm"
     model_input.constraints = "HBonds"
     model_input.rigidWater = True
@@ -393,6 +396,7 @@ def create_rmsd_mmvt_model_input(root_dir):
     model_input.pressure = 1.0
     model_input.ensemble = "nvt"
     model_input.root_directory = root_dir
+    model_input.bd_program = "browndye"
     model_input.md_program = "openmm"
     model_input.constraints = "HBonds"
     model_input.rigidWater = True
@@ -438,6 +442,7 @@ def create_closest_pair_mmvt_model_input(root_dir):
     model_input.pressure = 1.0
     model_input.ensemble = "nvt"
     model_input.root_directory = root_dir
+    model_input.bd_program = "browndye"
     model_input.md_program = "openmm"
     model_input.constraints = "HBonds"
     model_input.rigidWater = True
@@ -484,6 +489,7 @@ def create_count_contacts_mmvt_model_input(root_dir):
     model_input.pressure = 1.0
     model_input.ensemble = "nvt"
     model_input.root_directory = root_dir
+    model_input.bd_program = "browndye"
     model_input.md_program = "openmm"
     model_input.constraints = "HBonds"
     model_input.rigidWater = True
@@ -532,6 +538,7 @@ def create_toy_mmvt_model_input(root_dir):
     model_input.pressure = 1.0
     model_input.ensemble = "nvt"
     model_input.root_directory = root_dir
+    model_input.bd_program = "browndye"
     model_input.md_program = "openmm"
     model_input.constraints = "none"
     model_input.rigidWater = True
@@ -620,6 +627,7 @@ def create_toy_multi_model_input(root_dir):
     model_input.pressure = 1.0
     model_input.ensemble = "nvt"
     model_input.root_directory = root_dir
+    model_input.bd_program = "browndye"
     model_input.md_program = "openmm"
     model_input.constraints = "none"
     model_input.rigidWater = True
@@ -697,6 +705,7 @@ def create_toy_voronoi_model_input(root_dir):
     model_input.pressure = 1.0
     model_input.ensemble = "nvt"
     model_input.root_directory = root_dir
+    model_input.bd_program = "browndye"
     model_input.md_program = "openmm"
     model_input.constraints = "none"
     model_input.rigidWater = True
@@ -782,6 +791,7 @@ def create_ala_ala_mmvt_model_input(root_dir, ff="charmm"):
     model_input.pressure = 1.0
     model_input.ensemble = "nvt"
     model_input.root_directory = root_dir
+    model_input.bd_program = "browndye"
     model_input.md_program = "openmm"
     model_input.constraints = "HBonds"
     model_input.rigidWater = True
