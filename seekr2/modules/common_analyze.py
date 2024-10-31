@@ -319,7 +319,7 @@ def browndye_run_compute_rate_constant(compute_rate_constant_program,
             
             if sample_error_from_normal:
                 k_on = np.random.normal(loc=k_on, scale=k_on_error)
-    
+
     for key in transition_counts:
         reaction_probabilities[key] \
             = transition_counts[key] / transition_counts["total"]
@@ -341,7 +341,7 @@ def browndye_run_compute_rate_constant(compute_rate_constant_program,
         reaction_probability_errors, transition_counts
 
 
-def sda_run_compute_rate_constant(calculate_kon_program,
+def sda_run_compute_rate_constant(model, calculate_kon_program,
                       results_filename_list, \
                       b_surface_directory, bootstrap=False):
     """
@@ -385,9 +385,11 @@ def sda_run_compute_rate_constant(calculate_kon_program,
     """
     
     k_ons = defaultdict(float)
-    k_on_errors = defaultdict(float)
+    k_on_errors_all = defaultdict(float)
+    k_on_errors_bd_milestones = defaultdict(float)
     reaction_probabilities = defaultdict(float)
-    transition_counts = defaultdict(int)
+    transition_counts_all = defaultdict(int)
+    transition_counts_bd_milestones = defaultdict(int)
     total_n_trajectories = 0
 
     for results_filename in results_filename_list:
@@ -409,13 +411,33 @@ def sda_run_compute_rate_constant(calculate_kon_program,
                 len(line.split()) > 0:
                 win_dist, beta = \
                     float(line.split()[0]), float(line.split()[2])
-                transition_counts[win_dist] += int(beta*nruns)
+                transition_counts_all[win_dist] += int(beta*nruns)            
             elif read_kon_table and len(line.split()) == 0:
                 break
-           
-    for key in transition_counts:
+    
+    for bd_milestone in model.k_on_info.bd_milestones:
+                    
+        inner_milestone_index = bd_milestone.inner_milestone.index
+        inner_milestone_radius_amstrongs = \
+            bd_milestone.inner_milestone.variables["radius"] * 10
+        outer_milestone_index = bd_milestone.outer_milestone.index
+        outer_milestone_radius_amstrongs = \
+            bd_milestone.outer_milestone.variables["radius"] * 10
+        
+        assert inner_milestone_radius_amstrongs in transition_counts_all and \
+            outer_milestone_radius_amstrongs in transition_counts_all
+
+        transition_counts_bd_milestones[outer_milestone_index] = \
+            transition_counts_all[outer_milestone_radius_amstrongs]
+        transition_counts_bd_milestones[inner_milestone_index] = \
+            transition_counts_all[inner_milestone_radius_amstrongs]
+        transition_counts_bd_milestones["escaped"] = \
+            total_n_trajectories - transition_counts_bd_milestones[inner_milestone_index]
+        transition_counts_bd_milestones["total"] = total_n_trajectories
+
+    for key in transition_counts_bd_milestones:
         reaction_probabilities[key] \
-            = transition_counts[key] / total_n_trajectories
+            = transition_counts_bd_milestones[key] / total_n_trajectories
         beta = reaction_probabilities[key]
         k_ons[key] = kb*beta / (1 - (1-beta) * kb/kc)
     
@@ -448,12 +470,28 @@ def sda_run_compute_rate_constant(calculate_kon_program,
         win_dist, k_on_error = \
             float(win_dist), float(k_on_error)
 
-        k_on_errors[win_dist] = k_on_error
+        k_on_errors_all[win_dist] = k_on_error
 
-    assert k_ons.keys() == transition_counts.keys()
+    for bd_milestone in model.k_on_info.bd_milestones:
+                    
+        inner_milestone_index = bd_milestone.inner_milestone.index
+        inner_milestone_radius_amstrongs = \
+            bd_milestone.inner_milestone.variables["radius"] * 10
+        
+        outer_milestone_index = bd_milestone.outer_milestone.index
+        outer_milestone_radius_amstrongs = \
+            bd_milestone.outer_milestone.variables["radius"] * 10
+        
+        k_on_errors_bd_milestones[outer_milestone_index] = \
+            k_on_errors_all[outer_milestone_radius_amstrongs]
+        k_on_errors_bd_milestones[inner_milestone_index] = \
+            k_on_errors_all[inner_milestone_radius_amstrongs]
+        
 
-    return k_ons, k_on_errors, reaction_probabilities, \
-            transition_counts
+    assert k_ons.keys() == transition_counts_bd_milestones.keys()
+
+    return k_ons, k_on_errors_bd_milestones, reaction_probabilities, \
+            transition_counts_bd_milestones
 
 class Data_sample():
     """
@@ -629,20 +667,23 @@ class Data_sample():
                 if len(output_file_list) == 1:
                     k_ons_src, k_on_errors_src, reaction_probabilities, \
                     transition_counts = \
-                        sda_run_compute_rate_constant(os.path.join(
-                            self.model.sda_settings.sda_dir, "auxi/Bootstrap_multiCPU.py"), 
+                        sda_run_compute_rate_constant(self.model,
+                            os.path.join(self.model.sda_settings.sda_dir,
+                                         "auxi/Bootstrap_multiCPU.py"), 
                             output_file_list,
-                            os.path.join(self.model.anchor_rootdir, 
+                            os.path.join(self.model.anchor_rootdir, \
                                          self.model.k_on_info.b_surface_directory),
                             bootstrap)
                 else:
                     k_ons_src, k_on_errors_src, reaction_probabilities, \
                     transition_counts = \
-                        sda_run_compute_rate_constant(os.path.join(
-                            self.model.sda_settings.sda_dir, "bin/nos2rates"), 
+                        sda_run_compute_rate_constant(self.model,
+                            os.path.join(self.model.sda_settings.sda_dir, 
+                                         "bin/nos2rates"),
                             output_file_list,
                             os.path.join(self.model.anchor_rootdir, 
                                          self.model.k_on_info.b_surface_directory))
+                    
                 self.bd_transition_counts["b_surface"] = transition_counts
                 self.bd_transition_probabilities["b_surface"] \
                     = reaction_probabilities
@@ -922,7 +963,7 @@ class Data_sample():
                         if bd_milestone.index \
                                 not in self.bd_transition_probabilities:
                             break
-                        
+        
                         transition_probabilities \
                             = self.bd_transition_probabilities[
                                 bd_milestone.index]
