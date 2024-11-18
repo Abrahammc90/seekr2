@@ -1,0 +1,499 @@
+
+--------------------------------------------------------------------------------
+SDA: Simulation of Diffusional Association
+--------------------------------------------------------------------------------
+
+Simulation was begun on 30.10.2024 at 15:44:34
+ OpenMP activated
+ nb processor on this machine           16
+ nb of threads            1
+ max nb of threads           16
+ dynamic activated  F
+ is dynamic activated  F
+ is nested activated  T
+ read input file sda.in
+ read GROUP Type_Calculation
+
+ Random Number Generator, dseed:    0.0000000000000000     
+ seed generated from system clock   1627527845
+ Initialize RNG with ziggurat method
+ tab_seed :   1627527845  1627527846  1627527847  1627527848  1627527849  1627527850  1627527851  1627527852  1627527853  1627527854  1627527855  1627527856  1627527857  1627527858  1627527859  1627527860
+ test gaus   -1.0612129028435764      -0.34504301174824836       0.31086586999815879     
+ read GROUP ReactionCriteria
+ The sdamd value is           1
+ read GROUP RateCalculation
+ read GROUP Solute_Grid
+
+ WARNING Miss reading in Solute_Grid with the key trans_diffusion          
+
+
+ WARNING Miss reading in Solute_Grid with the key rot_diffusion            
+
+
+ ==========================================================================================
+      Preparation of Set of Grid            1 Conformation number            1
+
+Read effective charges : /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_receptor.echa
+No of charges read for grid :       35
+Net charge :                    -0.003
+ ishape is,  F
+ Spherical crowder:  F
+ Shape crowder:  F
+
+Read accessibility file : /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_receptor_noh.access
+ pdb filename: /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_receptor_noh.pdb
+Number of atoms in pdb :           147
+Geometric center at:               5.013   8.431  17.745
+
+ Found "add_atoms" file
+Largest atom radius is:          1.900
+Distance max of the solute :        8.178
+Generate exclusion grid with hexclusion=   0.100 porobep=    1.400
+
+Read pdb sasa file : 
+
+ === 3D Grids ===
+           1  electrostatic
+grid origin :   -16.064   -16.391   -16.391
+shape      :      65      65      65
+spacing h  :   0.500
+           2  desolvation
+grid origin :   -27.750   -27.750   -27.750
+shape      :     110     110     110
+spacing h  :   0.500
+           3  hydrophobic 
+grid origin :   -27.716   -27.693   -27.629
+shape      :     110     110     110
+spacing h  :   0.500
+           8  exclusion 
+grid origin :   -10.650   -10.550    -8.550
+shape      :     221     212     172
+spacing h  :   0.100
+ read GROUP Solute_Grid
+
+ WARNING Miss reading in Solute_Grid with the key trans_diffusion          
+
+
+ WARNING Miss reading in Solute_Grid with the key rot_diffusion            
+
+
+ ==========================================================================================
+      Preparation of Set of Grid            2 Conformation number            1
+
+Read effective charges : /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_ligand.echa
+No of charges read for grid :        1
+Net charge :                     0.000
+ ishape is,  F
+ Spherical crowder:  F
+ Shape crowder:  F
+
+Read accessibility file : /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_ligand_noh.access
+Largest atom radius is:          1.900
+Distance max of the solute :        2.124
+
+Read pdb sasa file : 
+
+ === 3D Grids ===
+           1  electrostatic
+grid origin :   -16.578   -16.539   -16.380
+shape      :      65      65      65
+spacing h  :   0.500
+           2  desolvation
+grid origin :   -27.750   -27.750   -27.750
+shape      :     110     110     110
+spacing h  :   0.500
+           3  hydrophobic 
+grid origin :   -27.770   -27.815   -27.253
+shape      :     110     110     110
+spacing h  :   0.500
+ read GROUP Geometry
+ read GROUP Timestep
+ read GROUP Complexes
+ using the old rotation version:  F
+ INPPAR onew F
+ PARAMFE onew F
+
+ ==========================================================================================
+ Type of calculation :            1 sda_2proteins  
+ No flexibility
+
+INPUT DATA:
+
+random number generator:               0.000
+timemax                                0.000
+number of runs:                        10000
+probe radius protein:                  1.400
+probe radius water:                    1.200
+accessibility threshold:               0.000
+save_exclusion         :                   0
+
+boost value:                  1.000
+no of tries before boost:       150
+smallest timestep:            1.000 ps
+  before c-t-c separation:   60.000 A
+largest timestep:            20.000 ps
+  at c-t-c separation:      100.000 A
+maximum timestep:      64.230 ps
+at the distance:            193.115 A
+maximum step (m):             1.778 A
+dist. from c surface(d):      6.885 A
+nb of std.deviation (d/m):    3.873
+
+
+   Trajectory 
+record trajectory number            -1
+max size array                       2
+opt sum                              1
+frequency output                  1000
+format ascii trajectory              1
+
+   Complexes 
+nb_complexes max                   500
+rmsds checked for each run           1
+rmsds checked for each conf          0
+rmsd_min                     0.100D+01
+opt sum                              0
+merge_step for thread (Only OpenMP)         50
+max size for thread   (Only OpenMP)        200
+format ascii complexe                1
+
+Value of bits for integer:         3        11 Size:    16
+refer to :  run number
+refer to :  step number
+Value of bits for energy :         7       111 Size:    16
+term :            1  electrostatic
+term :            2  desolvation
+term :            3  hydrophobic 
+ Geometry:    sphere
+b-surface:                100.000
+c-surface:                200.000
+start position:           100.000
+escape position:          200.000
+PBC:                     0
+escape                   1
+contain surface:         0
+
+reaction criteria:                          2
+                 :                   association
+total criteria   :                          1
+specific (only use in docking):             0
+aspecific (only use in docking):            0
+non specific     :                          1
+min. nonspecific :                          1
+window record (only use in assoc_rate):    1
+dind             :                       0.000
+sdamd            :                        1
+
+ ===========================================================================
+ Calculating Smoluchowski rate constants for diffusion to b- and c- Surfaces
+ ===========================================================================
+
+  No correction due to interactions at the b surface.
+   - This assumes that the interaction is negligible at the b surface
+
+association rate :
+rxn windows start at:         3.000 A
+rxn winndow increment:        0.500 A
+no of rxn windows:               35
+no of contact:                    1
+bootstrap:               1
+first passage time:      0
+b_rate:                   1.862E+10
+c_rate:                   3.723E+10
+
+ =========================================================
+   Print info array protein, nb_grids            2
+ set_of_protein grid            1 from solute            1  to            1
+ Solute(s) are NOT flexible
+ Protein(s) of this group points to the same movable array
+ Protein(s) of this group rotate
+
+ set_of_protein grid            2 from solute            2  to            2
+ Solute(s) are NOT flexible
+ Protein(s) of this group points to the same movable array
+ Protein(s) of this group rotate
+
+ =========================================================
+
+ Type of calculation sda_2proteins  :           1
+ Type of calculation false parrallel  F nb_par            1
+ SURF ONEWAY  F
+
+ =========================================================================
+  Entry main loop sda 2 proteins open mp 
+  Nrun        10000
+ F
+
+ Initialisation of rhit distance, above this value no check for overlap is done
+ rhit = sum of the distance max of each solute + a constant =    3.29999995    
+ dist max1    8.17813015      dist max 2    2.12425995    
+ Init rhit    13.6023893    
+Cut off summary
+ Protein:   1
+  1    1288.160    3066.558    3066.558       0.000       0.000
+  2     890.251    2432.723    2432.723       0.000       0.000
+ Protein:   2
+  1    1288.160    3066.558    3066.558       0.000       0.000
+  2     890.251    2432.723    2432.723       0.000       0.000
+ Interaction cutoff square, Cut2    3066.55835    
+
+ ===========================
+ Summary Param Force Energy 
+ nb_grid            3
+
+ interaction            1
+           1  electrostatic
+ symmetry            0
+ number of subgrids :            1
+ interaction            2
+           2  desolvation
+ symmetry            0
+ number of subgrids :            1
+ interaction            3
+           3  hydrophobic 
+ symmetry            0
+ number of subgrids :            1
+ fast computation  T
+ couple_ElDes  T
+ couple_ApDesLJrep  F
+
+ hydrodynamic interaction  F
+ image charge flag:   F
+ Include desolvation: F
+ Metal desolvation:   F
+
+ No analytical interactions
+ =====================
+
+
+ SDA case : the relative translational diffusion is the sum of the absolute diffusion coefficients
+ Solute 1 :    1.2299999594688416E-002
+ Solute 2 :    1.2299999594688416E-002
+ Relative diffusion coeefficient :    2.4599999189376831E-002
+
+
+ =========================================================================
+  Begin run 
+ before parrallel nrun       10000
+
+ Stat for thread            5
+
+stat o:    total steps these runs:    14500468
+stat o:       total number of run:         523
+stat o:      total simulated time:   112207776. ps
+stat o:    simulated time per run:       11221. ps
+stat o: total overlaps these runs:       54694
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread            0
+
+stat o:    total steps these runs:    15569124
+stat o:       total number of run:         656
+stat o:      total simulated time:   126636663. ps
+stat o:    simulated time per run:       12664. ps
+stat o: total overlaps these runs:       40790
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread            2
+
+stat o:    total steps these runs:    15907700
+stat o:       total number of run:         729
+stat o:      total simulated time:   133311514. ps
+stat o:    simulated time per run:       13331. ps
+stat o: total overlaps these runs:       48531
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread           12
+
+stat o:    total steps these runs:    15121185
+stat o:       total number of run:         607
+stat o:      total simulated time:   115989486. ps
+stat o:    simulated time per run:       11599. ps
+stat o: total overlaps these runs:       47052
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread            4
+
+stat o:    total steps these runs:    15193709
+stat o:       total number of run:         615
+stat o:      total simulated time:   122347374. ps
+stat o:    simulated time per run:       12235. ps
+stat o: total overlaps these runs:       40451
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread           14
+
+stat o:    total steps these runs:    15356346
+stat o:       total number of run:         581
+stat o:      total simulated time:   120283112. ps
+stat o:    simulated time per run:       12028. ps
+stat o: total overlaps these runs:       58476
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread           13
+
+stat o:    total steps these runs:    15388532
+stat o:       total number of run:         607
+stat o:      total simulated time:   120368315. ps
+stat o:    simulated time per run:       12037. ps
+stat o: total overlaps these runs:       40323
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread           15
+
+stat o:    total steps these runs:    15623153
+stat o:       total number of run:         631
+stat o:      total simulated time:   127767743. ps
+stat o:    simulated time per run:       12777. ps
+stat o: total overlaps these runs:       48395
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread            3
+
+stat o:    total steps these runs:    14346284
+stat o:       total number of run:         549
+stat o:      total simulated time:   112125234. ps
+stat o:    simulated time per run:       11213. ps
+stat o: total overlaps these runs:       50528
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread            7
+
+stat o:    total steps these runs:    13865044
+stat o:       total number of run:         590
+stat o:      total simulated time:   113464921. ps
+stat o:    simulated time per run:       11346. ps
+stat o: total overlaps these runs:       67811
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread           10
+
+stat o:    total steps these runs:    15755666
+stat o:       total number of run:         628
+stat o:      total simulated time:   127224102. ps
+stat o:    simulated time per run:       12722. ps
+stat o: total overlaps these runs:       61663
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread            1
+
+stat o:    total steps these runs:    15775306
+stat o:       total number of run:         660
+stat o:      total simulated time:   130379045. ps
+stat o:    simulated time per run:       13038. ps
+stat o: total overlaps these runs:       51433
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread            6
+
+stat o:    total steps these runs:    15780302
+stat o:       total number of run:         646
+stat o:      total simulated time:   130146445. ps
+stat o:    simulated time per run:       13015. ps
+stat o: total overlaps these runs:       49707
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread            8
+
+stat o:    total steps these runs:    15146076
+stat o:       total number of run:         599
+stat o:      total simulated time:   120851348. ps
+stat o:    simulated time per run:       12085. ps
+stat o: total overlaps these runs:       43687
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread            9
+
+stat o:    total steps these runs:    15440256
+stat o:       total number of run:         670
+stat o:      total simulated time:   130160970. ps
+stat o:    simulated time per run:       13016. ps
+stat o: total overlaps these runs:       50605
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Stat for thread           11
+
+stat o:    total steps these runs:    15916666
+stat o:       total number of run:         709
+stat o:      total simulated time:   134682639. ps
+stat o:    simulated time per run:       13468. ps
+stat o: total overlaps these runs:       52652
+stat o:        total overlap flex:           0
+stat o:   total boosts these runs:           0
+
+ Final table of rates:
+     rxn       M^-1s^-1      beta      time
+#    1
+  0.3000E+01  0.9965E+09  0.2750E-01  0.2750E-01
+  0.3500E+01  0.1074E+10  0.2970E-01  0.4766E+00
+  0.4000E+01  0.1151E+10  0.3190E-01  0.1684E+01
+  0.4500E+01  0.1238E+10  0.3440E-01  0.3595E+01
+  0.5000E+01  0.1366E+10  0.3810E-01  0.6254E+01
+  0.5500E+01  0.1487E+10  0.4160E-01  0.9832E+01
+  0.6000E+01  0.1610E+10  0.4520E-01  0.1491E+02
+  0.6500E+01  0.1726E+10  0.4860E-01  0.2211E+02
+  0.7000E+01  0.1807E+10  0.5100E-01  0.3198E+02
+  0.7500E+01  0.1881E+10  0.5320E-01  0.4479E+02
+  0.8000E+01  0.1974E+10  0.5600E-01  0.6054E+02
+  0.8500E+01  0.2081E+10  0.5920E-01  0.7965E+02
+  0.9000E+01  0.2164E+10  0.6170E-01  0.1041E+03
+  0.9500E+01  0.2259E+10  0.6460E-01  0.1390E+03
+  0.1000E+02  0.2341E+10  0.6710E-01  0.1967E+03
+  0.1050E+02  0.2384E+10  0.6840E-01  0.2840E+03
+  0.1100E+02  0.2413E+10  0.6930E-01  0.3761E+03
+  0.1150E+02  0.2439E+10  0.7010E-01  0.4504E+03
+  0.1200E+02  0.2465E+10  0.7090E-01  0.5029E+03
+  0.1250E+02  0.2514E+10  0.7240E-01  0.5384E+03
+  0.1300E+02  0.2572E+10  0.7420E-01  0.5633E+03
+  0.1350E+02  0.2646E+10  0.7650E-01  0.5825E+03
+  0.1400E+02  0.2713E+10  0.7860E-01  0.5987E+03
+  0.1450E+02  0.2818E+10  0.8190E-01  0.6145E+03
+  0.1500E+02  0.2891E+10  0.8420E-01  0.6309E+03
+  0.1550E+02  0.2948E+10  0.8600E-01  0.6485E+03
+  0.1600E+02  0.3030E+10  0.8860E-01  0.6676E+03
+  0.1650E+02  0.3152E+10  0.9250E-01  0.6882E+03
+  0.1700E+02  0.3243E+10  0.9540E-01  0.7103E+03
+  0.1750E+02  0.3345E+10  0.9870E-01  0.7339E+03
+  0.1800E+02  0.3419E+10  0.1011E+00  0.7591E+03
+  0.1850E+02  0.3520E+10  0.1044E+00  0.7861E+03
+  0.1900E+02  0.3632E+10  0.1081E+00  0.8151E+03
+  0.1950E+02  0.3720E+10  0.1110E+00  0.8459E+03
+  0.2000E+02  0.3822E+10  0.1144E+00  0.8785E+03
+
+ Exit main loop sda 2 proteins
+ INFO All your SDA runs/trajectories finished successfully.
+ Mytimer total
+ ====================================
+ clock time :   75.7699966      sec count            1  each    75.7699966    
+       soit :           0 h            1 min. and           15 sec and          769 ms
+ min.clock time:    75.7699966      sec
+ cpu time (F95 library):   1140.23743      sec, each:    1140.23743    
+         soit:           0 h           19 min. and            0 sec and          237 ms
+ min.cpu time:    1140.23743      sec
+ Mytimer prep
+ ====================================
+ clock time :  0.186000004      sec count            1  each   0.186000004    
+       soit :           0 h            0 min. and            0 sec and          186 ms
+ min.clock time:   0.186000004      sec
+ cpu time (F95 library):  0.179414004      sec, each:   0.179414004    
+         soit:           0 h            0 min. and            0 sec and          179 ms
+ min.cpu time:   0.179414004      sec
+
+Simulation ended on 30.10.2024 at 15:45:49
+
+--------------------------------------------------------------------------------

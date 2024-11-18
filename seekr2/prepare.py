@@ -40,7 +40,6 @@ def prepare(model_input, force_overwrite=False):
         os.path.expanduser(model_input.root_directory))
     model_input.root_directory = root_directory
     filetree.generate_filetree_root(model, root_directory)
-    
     xml_path = os.path.join(root_directory, "model.xml")
     common_prepare.prepare_model_cvs_and_anchors(model, model_input, 
                                                  force_overwrite)

@@ -55,11 +55,11 @@ def test_add_simulation(tmp_path, toy_mmvt_model):
     assert my_sim_openmm.simulation is not None
 
 @pytest.mark.needs_cuda
-def test_mmvt_sim_openmm_amber(tmp_path, host_guest_mmvt_model):
-    myanchor = host_guest_mmvt_model.anchors[1]
+def test_mmvt_sim_openmm_amber(tmp_path, host_guest_mmvt_sda_model):
+    myanchor = host_guest_mmvt_sda_model.anchors[1]
     output_file = os.path.join(tmp_path, "output.txt")
     my_sim_openmm = mmvt_sim_openmm.create_sim_openmm(
-        host_guest_mmvt_model, myanchor, output_file)
+        host_guest_mmvt_sda_model, myanchor, output_file)
     assert my_sim_openmm.system is not None
     assert my_sim_openmm.integrator is not None
     assert my_sim_openmm.simulation is not None
@@ -113,17 +113,17 @@ def test_get_starting_structure_num_frames(tmp_path, toy_mmvt_model):
     assert num_frames2 == 1
 
 @pytest.mark.needs_cuda
-def test_check_if_state_in_anchor(host_guest_mmvt_model):
+def test_check_if_state_in_anchor(host_guest_mmvt_sda_model):
     state_file = os.path.join(TEST_DIRECTORY, "data/hostguest_state_a1.xml")
-    myanchor1 = host_guest_mmvt_model.anchors[1]
+    myanchor1 = host_guest_mmvt_sda_model.anchors[1]
     result1 = mmvt_sim_openmm.check_if_state_in_anchor(
-        host_guest_mmvt_model, myanchor1, state_file)
+        host_guest_mmvt_sda_model, myanchor1, state_file)
     assert result1
-    myanchor2 = host_guest_mmvt_model.anchors[0]
+    myanchor2 = host_guest_mmvt_sda_model.anchors[0]
     result2 = mmvt_sim_openmm.check_if_state_in_anchor(
-        host_guest_mmvt_model, myanchor2, state_file)
+        host_guest_mmvt_sda_model, myanchor2, state_file)
     assert not result2
-    myanchor3 = host_guest_mmvt_model.anchors[2]
+    myanchor3 = host_guest_mmvt_sda_model.anchors[2]
     result3 = mmvt_sim_openmm.check_if_state_in_anchor(
-        host_guest_mmvt_model, myanchor3, state_file)
+        host_guest_mmvt_sda_model, myanchor3, state_file)
     assert not result3

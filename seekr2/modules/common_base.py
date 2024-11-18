@@ -625,8 +625,11 @@ class SDA_settings(Serializer):
     
     Attributes:
     -----------
-    sda_dir : str, Default ""
-        A path to the SDA programs. If SDA's directory 
+    sda_bin_dir : str, Default ""
+        A path to the SDA binary files. If SDA's directory 
+        has been added to system $PATH, then this string can be empty.
+    sda_auxi_dir : str, Default ""
+        A path to the SDA auxiliary files. If SDA's directory 
         has been added to system $PATH, then this string can be empty.
     solutes : list
         A list of Solute() objects that contains the properties of the 
@@ -640,7 +643,8 @@ class SDA_settings(Serializer):
     """
     
     def __init__(self):
-        self.sda_dir = ""
+        self.sda_bin_dir = ""
+        self.sda_auxi_dir = ""
         self.solutes = []
         self.atoms = []
         return

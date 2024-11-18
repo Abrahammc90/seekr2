@@ -53,19 +53,32 @@ def cleanse_bd_outputs(directory, check_mode=True):
             os.remove(traj_file)
     return files_will_be_removed
 
-def make_pdb_noh(model, bd_directory):
+def make_pdb_noh(model, rootdir, bd_directory=None):
     
     """
     Creates PDBs of the solutes without hydrogens, needed by SDA
     as it uses an implicit hydrogen model.
 
     Parameters
+    ----------
     model : Model()
         The model object contains all information needed for a SEEKR2
         calculation.
+
+    rootdir : str
+        The model's root directory.
+
     bd_directory : str
         Directory where the PDBs will be written.
     """
+
+    if bd_directory is None:
+        # B-surface
+        bd_directory = os.path.join(
+            rootdir, model.k_on_info.b_surface_directory)
+    else:
+        # BD Milestone
+        bd_directory = os.path.join(rootdir, bd_directory)
 
     curdir = os.getcwd()
     print("moving to directory:", bd_directory)
@@ -94,7 +107,7 @@ def make_pdb_noh(model, bd_directory):
     os.chdir(curdir)
     return
 
-def make_sda_grids(model, bd_directory, sda_dir):
+def make_sda_grids(model, rootdir, sda_bin_dir, sda_auxi_dir=None, bd_directory=None):
     """
     Creates SDA grids and effective charge models.
     
@@ -103,24 +116,35 @@ def make_sda_grids(model, bd_directory, sda_dir):
     model : Model()
         The model object contains all information needed for a SEEKR2
         calculation.
-        
+
+    rootdir : str
+        The model's root directory.
+    
+    sda_bin_dir : str
+        Path to the SDA binary files.
+
+    sda_auxi_dir : str
+        Path to the SDA binary files.
+
     bd_directory : str
-        Directory where the PDBs will be written.
+        Directory where grids will be created.
         
-    sda_dir : str
-        Path to the SDA program.
     """
+
+    if bd_directory is None:
+        # B-surface
+        bd_directory = os.path.join(
+            rootdir, model.k_on_info.b_surface_directory)
+    else:
+        # BD Milestone
+        bd_directory = os.path.join(rootdir, bd_directory)
 
     curdir = os.getcwd()
     print("moving to directory:", bd_directory)
     assert model.k_on_info.ions is not None, \
-            "Ions must be included for APBS calculations"
+            "Ions must be included for grids"
     os.chdir(bd_directory)
     print("creating SDA grids")
-
-    ionic_strength = 0
-    for ion in model.k_on_info.ions:
-        ionic_strength += ion.conc*ion.charge**2 / 2
 
     solute_idx = 0
     for solute in model.sda_settings.solutes:
@@ -134,15 +158,18 @@ def make_sda_grids(model, bd_directory, sda_dir):
 
         #Making APBS grids
         apbs_input = sim_sda.APBS_Input()
-        apbs_input.solute = solute
-        apbs_input.temperature = model.temperature
 
+        ionic_strength = 0
         for model_ion in model.k_on_info.ions:
             bd_ion = sim_sda.Ion()
             bd_ion.radius = model_ion.radius
             bd_ion.charge = model_ion.charge
             bd_ion.conc = model_ion.conc
             apbs_input.solvent.ions.append(bd_ion)
+            ionic_strength += model_ion.conc*model_ion.charge**2 / 2
+
+        apbs_input.solute = solute
+        apbs_input.temperature = model.temperature
 
         apbs_input.solute_pqr = pqr_filename
         apbs_input.solute_name = solute_name
@@ -160,7 +187,7 @@ def make_sda_grids(model, bd_directory, sda_dir):
         epf = solute_name + "_ep.grd"
         
         #Converting electrostatic potential energy to kcal
-        sda_convert_bin = os.path.join(sda_dir, "bin", "convert_grid")
+        sda_convert_bin = os.path.join(sda_bin_dir, "convert_grid")
         run_sda_convert_command = sda_convert_bin + " " + apbs_output_grid + \
             " " + epf + " -scale 0.6 -convert > apbs_grid_conversion_" + \
             str(solute_idx) + ".out"
@@ -201,14 +228,14 @@ def make_sda_grids(model, bd_directory, sda_dir):
         sda_grid_inputs.write()
 
         if solute.type == "Small_organic_compound":
-            test_charge_bin = "python " + os.path.join(sda_dir, \
-                              "auxi/Kon-rates-SmallMolecule/Generate-ECMSites-SmallMol/ECM_ligand.py") + \
+            test_charge_bin = sda_auxi_dir, \
+                              "Kon-rates-SmallMolecule/Generate-ECMSites-SmallMol/ECM_ligand.py" + \
             " > tcha_" + str(solute_idx) + ".out"
             
             test_charge_command = test_charge_bin + " " + pqr_filename
         else:
-            test_charge_bin = os.path.join(sda_dir, \
-                                               "bin/ecm_mksites")
+            test_charge_bin = os.path.join(sda_bin_dir, \
+                                               "ecm_mksites")
             test_charge_command = test_charge_bin + " " + pdb_filename + " " + \
                 tcha + " > tcha_" + str(solute_idx) + ".out"
         
@@ -216,14 +243,14 @@ def make_sda_grids(model, bd_directory, sda_dir):
         os.system(test_charge_command)
 
 
-        effective_charge_bin = os.path.join(sda_dir, \
-                                            "bin/ecm_expand")
+        effective_charge_bin = os.path.join(sda_bin_dir, \
+                                            "ecm_expand")
         effective_charge_command = effective_charge_bin + " " + qef_input + \
         " > ecm_" + str(solute_idx) + ".out"
         print("running command", effective_charge_command)
         os.system(effective_charge_command)
 
-        edhdlj_bin = os.path.join(sda_dir, "bin/make_edhdlj_grid")
+        edhdlj_bin = os.path.join(sda_bin_dir, "make_edhdlj_grid")
         if solute.solute_grid.lj_repf is not None:
         #if hasattr(solute_name, 'lj_repf'):
             edhdlj_command = edhdlj_bin + " -ed " + edf_input + " -hd " + hdf_input + \
@@ -240,7 +267,8 @@ def make_sda_grids(model, bd_directory, sda_dir):
 
     #sim_sda.make_and_run_sda_grids()
 
-def make_sda_reaction(abs_reaction_path, ghost_atoms_rec, ghost_atoms_lig):
+def make_sda_reaction(model, rootdir, atoms_rec, atoms_lig, 
+                      bd_directory=None):
     """
     Creates SDA reaction file.
     
@@ -249,23 +277,41 @@ def make_sda_reaction(abs_reaction_path, ghost_atoms_rec, ghost_atoms_lig):
     model : Model()
         The model object contains all information needed for a SEEKR2
         calculation.
+
+    rootdir : str
+        The model's root directory.
         
     abs_reaction_path : str
         The absolute path to where the reaction file will be written.
         
-    ghost_atoms_rec : array
-        Array of the receptor ghost atoms in PDB format
+    atoms_rec : array
+        Array of the reactive receptor atoms in PDB format.
 
-    ghost_atoms_lig : array
-        Array of the ligand ghost atoms in PDB format
+    atoms_lig : array
+        Array of the reactive ligand atoms in PDB format.
+    
+    bd_directory : str
+        Directory where the reaction criteria file will be written.
     """
     
     print("Creating SDA reaction file")
     print("")
 
+    if bd_directory is None:
+        # B-surface
+        bd_directory = os.path.join(
+            rootdir, model.k_on_info.b_surface_directory)
+    else:
+        # BD Milestone
+        bd_directory = os.path.join(rootdir, bd_directory)
+
+    abs_reaction_path = os.path.join(bd_directory, "p2.rxna")
+
     sda_reaction = sim_sda.Reaction()
-    sda_reaction.ghost_atoms_rec = ghost_atoms_rec
-    sda_reaction.ghost_atoms_lig = ghost_atoms_lig
+    sda_reaction.atoms_rec = atoms_rec
+    sda_reaction.atoms_lig = atoms_lig
+
+
 
     sda_reaction.write(abs_reaction_path)
     return
@@ -287,10 +333,10 @@ def make_sda_input(model, rootdir, num_b_surface_trajectories,
         The model's root directory.
     
     num_b_surface_trajectories : int
-        Number of BD trajectories
+        Number of BD trajectories.
     
     bd_directory : str
-        b_surface directory
+        b_surface directory.
     """
     
     sda_input = sim_sda.Input()
@@ -314,12 +360,10 @@ def make_sda_input(model, rootdir, num_b_surface_trajectories,
 
     sda_input.write(os.path.join(bd_directory, SDA_INPUT))
 
-    #root.system.reaction_file = REACTION_FILENAME
-    #reaction_filename = root.system.reaction_file
     
     return
 
-def make_add_atoms(model, bd_directory):
+def make_add_atoms(model, rootdir, bd_directory=None):
 
     """
     Creates add_atoms input file, which contains specific parameters
@@ -329,10 +373,21 @@ def make_add_atoms(model, bd_directory):
     ----------
     model : Model()
         The SEEKR2 model.
+
+    rootdir : str
+        The model's root directory.
         
     bd_directory : str
         Directory where the add_atoms file will be written.
     """
+
+    if bd_directory is None:
+        # B-surface
+        bd_directory = os.path.join(
+            rootdir, model.k_on_info.b_surface_directory)
+    else:
+        # BD Milestone
+        bd_directory = os.path.join(rootdir, bd_directory)
 
     add_atoms_filename = os.path.join(bd_directory, "add_atoms")
 
@@ -363,7 +418,7 @@ def make_add_atoms(model, bd_directory):
             add_atoms.write(test_charge)    
         add_atoms.write("END GROUP\n")
 
-def run_hydropro(model, bd_directory, hydropro_dir):
+def run_hydropro(model, rootdir, hydropro_dir, bd_directory=None):
 
     """
     Creates hydropro's input files and run hydropro to calculate
@@ -373,13 +428,25 @@ def run_hydropro(model, bd_directory, hydropro_dir):
     ----------
     model : Model()
         The SEEKR2 model.
-        
-    bd_directory : str
-        The b_surface directory.
+
+    rootdir : str
+        The model's root directory.
            
     hydropro_dir : str
         Directory where hydropro program is stored.
+
+    bd_directory : str
+        The b_surface directory where the SDA input file 
+        is located.
     """
+
+    if bd_directory is None:
+        # B-surface
+        bd_directory = os.path.join(
+            rootdir, model.k_on_info.b_surface_directory)
+    else:
+        # BD Milestone
+        bd_directory = os.path.join(rootdir, bd_directory)
 
     print("Calculating diffusion coefficients")
 
@@ -515,13 +582,14 @@ def modify_variables(bd_milestone_directory, bd_output_glob,
             
         sim_file_new_lines.append(new_line)
     
-    with open(simulation_filename, 'w') as f:
+    with open(output_file, 'w') as f:
         for line in sim_file_new_lines:
             f.write(line)
             
     return
 
-def run_nam_simulation(sda_bin_dir, bd_directory, sda_output_glob):
+def run_nam_simulation(sda_bin_dir, bd_directory, sda_output_glob, 
+                       force_overwrite=False):
     """
     Run the SDA simulation.
     
@@ -539,6 +607,7 @@ def run_nam_simulation(sda_bin_dir, bd_directory, sda_output_glob):
         A glob to detect the presence of results files to ensure that
         simulations ran properly.
     """
+
     curdir = os.getcwd()
     print("moving to directory:", bd_directory)
     os.chdir(bd_directory)
@@ -546,8 +615,29 @@ def run_nam_simulation(sda_bin_dir, bd_directory, sda_output_glob):
     simulation_filename = SDA_INPUT
     command = bd_command + " " + simulation_filename + \
     " > sda.out"
-    print("running command:", command)
-    os.system(command)
+
+    if force_overwrite:
+        print("running command:", command)
+        os.system(command)
+    else:
+        if not os.path.exists("sda.out"):
+            print("running command:", command)
+            os.system(command)
+        else:
+            pattern = "INFO All your SDA runs/trajectories finished successfully."
+            ran = False
+            with open('your_file.txt', 'r') as file:
+                for line in file:
+                    if re.search(pattern, line):  # Check if pattern is in the line
+                        ran = True
+                        break
+            if not ran:
+                print("running command:", command)
+                os.system(command)
+            else:
+                print("SDA simulations already ran.")
+                print("If you want to run them again, set force_overwrite.")
+
     results_glob = glob.glob(sda_output_glob)
     assert len(results_glob) > 0, "Problem occurred running "\
         "nam_simulation: results file was not generated."
@@ -629,12 +719,12 @@ if __name__ == "__main__":
     bd_directory_list = [bd_milestone_directory]
         
     for bd_directory in bd_directory_list:
-        make_sda_grids(os.path.join(model.sda_settings.sda_dir, "bin"), 
+        make_sda_grids(model.sda_settings.sda_bin_dir, 
                    bd_directory, restart, force_overwrite)
         assert n_trajectories is not None, "The argument '--n_trajectories' "\
             "(-n) must be set for the specified calculation."
         modify_variables(bd_directory, model.k_on_info.bd_output_glob, 
                          n_trajectories, seed, restart)
-        run_nam_simulation(os.path.join(model.sda_settings.sda_dir, "bin"), 
+        run_nam_simulation(model.sda_settings.sda_bin_dir, 
                            bd_directory, 
                            model.k_on_info.bd_output_glob)

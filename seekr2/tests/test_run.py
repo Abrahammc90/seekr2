@@ -52,40 +52,40 @@ def get_checkpoint_step(model, anchor):
     dummy_file.close()
     return currentStep
 
-def test_choose_next_simulation_browndye2(host_guest_mmvt_model):
-    host_guest_mmvt_model.calculation_settings.restart_checkpoint_interval = 100
+def test_choose_next_simulation_browndye2(host_guest_mmvt_sda_model):
+    host_guest_mmvt_sda_model.calculation_settings.restart_checkpoint_interval = 100
     bd_milestone_info_to_run_unsorted = run.choose_next_simulation_browndye2(
-        host_guest_mmvt_model, "b_surface", 100, True)
+        host_guest_mmvt_sda_model, "b_surface", 100, True)
     assert bd_milestone_info_to_run_unsorted[0][0] == 100
     assert bd_milestone_info_to_run_unsorted[0][1] == 0
     assert bd_milestone_info_to_run_unsorted[0][2] == "b_surface"
     assert bd_milestone_info_to_run_unsorted[0][3] == False
     assert bd_milestone_info_to_run_unsorted[0][4] == 100
-    run.run(host_guest_mmvt_model, "b_surface", force_overwrite=True)
+    run.run(host_guest_mmvt_sda_model, "b_surface", force_overwrite=True)
     
     # test restart
-    host_guest_mmvt_model.k_on_info.b_surface_num_trajectories = 200
+    host_guest_mmvt_sda_model.k_on_info.b_surface_num_trajectories = 200
     bd_milestone_info_to_run_unsorted = run.choose_next_simulation_browndye2(
-        host_guest_mmvt_model, "b_surface", 200, False)
+        host_guest_mmvt_sda_model, "b_surface", 200, False)
     assert bd_milestone_info_to_run_unsorted[0][0] == 100
     #assert bd_milestone_info_to_run_unsorted[0][1] == 100
     assert bd_milestone_info_to_run_unsorted[0][2] == "b_surface"
     assert bd_milestone_info_to_run_unsorted[0][3] == True
     assert bd_milestone_info_to_run_unsorted[0][4] == 100
     
-    run.run(host_guest_mmvt_model, "b_surface", force_overwrite=True)
+    run.run(host_guest_mmvt_sda_model, "b_surface", force_overwrite=True)
     
     # test criteria satisfied
     bd_milestone_info_to_run_unsorted = run.choose_next_simulation_browndye2(
-        host_guest_mmvt_model, "b_surface", 200, False)
+        host_guest_mmvt_sda_model, "b_surface", 200, False)
     assert len(bd_milestone_info_to_run_unsorted) == 0
     
     # test min_b_surface_encounters
     bd_transition_counts = common_converge.get_bd_transition_counts(
-        host_guest_mmvt_model)
+        host_guest_mmvt_sda_model)
     min_b_surface_encounters = bd_transition_counts["b_surface"][11] + 1
     bd_milestone_info_to_run_unsorted = run.choose_next_simulation_browndye2(
-        host_guest_mmvt_model, "b_surface", 200, False, 
+        host_guest_mmvt_sda_model, "b_surface", 200, False, 
         min_b_surface_encounters)
     
     assert bd_milestone_info_to_run_unsorted[0][0] \
@@ -106,33 +106,33 @@ def test_get_current_step_openmm(toy_mmvt_model):
     assert currentStep == num_steps
     return
 
-def test_get_current_step_openmm_state(host_guest_mmvt_model):
+def test_get_current_step_openmm_state(host_guest_mmvt_sda_model):
     num_steps = 20
-    host_guest_mmvt_model.calculation_settings.num_production_steps = num_steps
-    host_guest_mmvt_model.calculation_settings.restart_checkpoint_interval = 10
-    host_guest_mmvt_model.openmm_settings.cuda_platform_settings = None
-    host_guest_mmvt_model.openmm_settings.reference_platform = True
-    myanchor = host_guest_mmvt_model.anchors[1]
+    host_guest_mmvt_sda_model.calculation_settings.num_production_steps = num_steps
+    host_guest_mmvt_sda_model.calculation_settings.restart_checkpoint_interval = 10
+    host_guest_mmvt_sda_model.openmm_settings.cuda_platform_settings = None
+    host_guest_mmvt_sda_model.openmm_settings.reference_platform = True
+    myanchor = host_guest_mmvt_sda_model.anchors[1]
     directory = os.path.join(
-        host_guest_mmvt_model.anchor_rootdir, myanchor.directory, "prod")
+        host_guest_mmvt_sda_model.anchor_rootdir, myanchor.directory, "prod")
     mmvt_output_filename = os.path.join(directory, 
         "%s%d.%s" % (mmvt_cv_base.OPENMMVT_BASENAME, 1, 
                              mmvt_cv_base.OPENMMVT_EXTENSION))
     myglob = os.path.join(
-        host_guest_mmvt_model.anchor_rootdir, myanchor.directory, "prod", "*")
-    loading_state_filename = os.path.join(host_guest_mmvt_model.anchor_rootdir, 
+        host_guest_mmvt_sda_model.anchor_rootdir, myanchor.directory, "prod", "*")
+    loading_state_filename = os.path.join(host_guest_mmvt_sda_model.anchor_rootdir, 
                                           "start.state")
-    runner = runner_openmm.Runner_openmm(host_guest_mmvt_model, myanchor)
+    runner = runner_openmm.Runner_openmm(host_guest_mmvt_sda_model, myanchor)
     default_output_file, state_file_prefix, restart_index = runner.prepare(
         force_overwrite=True)
     my_sim_openmm = mmvt_sim_openmm.create_sim_openmm(
-        host_guest_mmvt_model, myanchor, mmvt_output_filename)
+        host_guest_mmvt_sda_model, myanchor, mmvt_output_filename)
     my_sim_openmm.simulation.saveState(loading_state_filename)
     myanchor.amber_params.pdb_coordinates_filename = None
-    run.run(host_guest_mmvt_model, "1", min_total_simulation_length=num_steps,
+    run.run(host_guest_mmvt_sda_model, "1", min_total_simulation_length=num_steps,
             force_overwrite=True, load_state_file=loading_state_filename)
     currentStep = run.get_current_step_openmm(
-        host_guest_mmvt_model, myanchor, loading_state_filename)
+        host_guest_mmvt_sda_model, myanchor, loading_state_filename)
     assert currentStep == num_steps
     
     return
@@ -545,36 +545,36 @@ def test_run_ala_ala_ala_charmm(ala_ala_ala_mmvt_model_charmm):
     check.check_post_simulation_all(ala_ala_ala_mmvt_model_charmm)
     pass
 
-def test_run_load_state(host_guest_mmvt_model):
-    host_guest_mmvt_model.calculation_settings.num_production_steps = 10
-    host_guest_mmvt_model.calculation_settings.restart_checkpoint_interval = 10
-    host_guest_mmvt_model.openmm_settings.cuda_platform_settings = None
-    host_guest_mmvt_model.openmm_settings.reference_platform = True
-    myanchor = host_guest_mmvt_model.anchors[1]
+def test_run_load_state(host_guest_mmvt_sda_model):
+    host_guest_mmvt_sda_model.calculation_settings.num_production_steps = 10
+    host_guest_mmvt_sda_model.calculation_settings.restart_checkpoint_interval = 10
+    host_guest_mmvt_sda_model.openmm_settings.cuda_platform_settings = None
+    host_guest_mmvt_sda_model.openmm_settings.reference_platform = True
+    myanchor = host_guest_mmvt_sda_model.anchors[1]
     directory = os.path.join(
-        host_guest_mmvt_model.anchor_rootdir, myanchor.directory, "prod")
+        host_guest_mmvt_sda_model.anchor_rootdir, myanchor.directory, "prod")
     mmvt_output_filename = os.path.join(directory, 
         "%s%d.%s" % (mmvt_cv_base.OPENMMVT_BASENAME, 1, 
                              mmvt_cv_base.OPENMMVT_EXTENSION))
     myglob = os.path.join(
-        host_guest_mmvt_model.anchor_rootdir, myanchor.directory, "prod", "*")
-    loading_state_filename = os.path.join(host_guest_mmvt_model.anchor_rootdir, 
+        host_guest_mmvt_sda_model.anchor_rootdir, myanchor.directory, "prod", "*")
+    loading_state_filename = os.path.join(host_guest_mmvt_sda_model.anchor_rootdir, 
                                           "start.state")
-    runner = runner_openmm.Runner_openmm(host_guest_mmvt_model, myanchor)
+    runner = runner_openmm.Runner_openmm(host_guest_mmvt_sda_model, myanchor)
     default_output_file, state_file_prefix, restart_index = runner.prepare(
         force_overwrite=True)
     my_sim_openmm = mmvt_sim_openmm.create_sim_openmm(
-        host_guest_mmvt_model, myanchor, mmvt_output_filename)
+        host_guest_mmvt_sda_model, myanchor, mmvt_output_filename)
     my_sim_openmm.simulation.saveState(loading_state_filename)
     #runner.run(my_sim_openmm, False, load_state_file=[loading_state_filename, 
     #                                                  loading_state_filename])
     myanchor.amber_params.pdb_coordinates_filename = None
-    run.run(host_guest_mmvt_model, "1", min_total_simulation_length=10,
+    run.run(host_guest_mmvt_sda_model, "1", min_total_simulation_length=10,
             force_overwrite=True, load_state_file=loading_state_filename)
     output_file_name = os.path.join(directory, "mmvt.restart1.out")
     assert os.path.exists(output_file_name)
     
-    run.run(host_guest_mmvt_model, "1", min_total_simulation_length=10,
+    run.run(host_guest_mmvt_sda_model, "1", min_total_simulation_length=10,
             force_overwrite=True, load_state_file=[loading_state_filename, 
                                                       loading_state_filename])
     output_file_name1 = os.path.join(directory, "mmvt.swarm_0.restart1.out")

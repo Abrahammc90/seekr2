@@ -466,7 +466,7 @@ def run_sda(model, bd_milestone_index, restart, n_trajectories,
     """Run a SDA simulation."""
     import seekr2.modules.runner_sda as runner_sda
     
-    sda_bin_dir = os.path.join(model.sda_settings.sda_dir, "bin")
+    sda_bin_dir = model.sda_settings.sda_bin_dir
 
     if bd_milestone_index == "b_surface":
         bd_milestone_directory = os.path.join(

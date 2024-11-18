@@ -35,7 +35,7 @@ def test_make_toy_system_object(toy_mmvt_model):
     assert force.getGlobalParameterName(0) == "k"
     return
 
-def test_create_openmm_system(toy_mmvt_model, host_guest_mmvt_model):
+def test_create_openmm_system(toy_mmvt_model, host_guest_mmvt_sda_model):
     my_sim_openmm = common_sim_openmm.Common_sim_openmm()
     anchor = toy_mmvt_model.anchors[0]
     system, topology, positions, box_vectors, num_frames \
@@ -50,10 +50,10 @@ def test_create_openmm_system(toy_mmvt_model, host_guest_mmvt_model):
     assert np.isclose(positions2, np.array([[0.3, -0.7, 0.0]])\
                       *unit.nanometers).all()
     
-    anchor2 = host_guest_mmvt_model.anchors[0]
+    anchor2 = host_guest_mmvt_sda_model.anchors[0]
     system3, topology3, positions3, box_vectors3, num_frames3 \
         = common_sim_openmm.create_openmm_system(
-        my_sim_openmm, host_guest_mmvt_model, anchor2)
+        my_sim_openmm, host_guest_mmvt_sda_model, anchor2)
     
 
 def test_add_barostat(host_guest_mmvt_model_npt):
@@ -84,15 +84,15 @@ def test_add_platform_ref(toy_mmvt_model):
     assert my_sim_openmm.properties == {}
 
 @pytest.mark.needs_cuda
-def test_add_platform_cuda(host_guest_mmvt_model):
-    host_guest_mmvt_model.openmm_settings.cuda_platform_settings\
+def test_add_platform_cuda(host_guest_mmvt_sda_model):
+    host_guest_mmvt_sda_model.openmm_settings.cuda_platform_settings\
         .cuda_device_index = "2"
     my_sim_openmm = common_sim_openmm.Common_sim_openmm()
-    anchor = host_guest_mmvt_model.anchors[0]
+    anchor = host_guest_mmvt_sda_model.anchors[0]
     system, topology, positions, box_vectors, num_frames \
         = common_sim_openmm.create_openmm_system(
-        my_sim_openmm, host_guest_mmvt_model, anchor, frame=0)
-    common_sim_openmm.add_platform(my_sim_openmm, host_guest_mmvt_model)
+        my_sim_openmm, host_guest_mmvt_sda_model, anchor, frame=0)
+    common_sim_openmm.add_platform(my_sim_openmm, host_guest_mmvt_sda_model)
     assert my_sim_openmm.platform.getName() == "CUDA"
     assert my_sim_openmm.properties["CudaPrecision"] == "mixed"
     assert my_sim_openmm.properties["CudaDeviceIndex"] == "2"

@@ -133,6 +133,110 @@ def test_move_add_delete_input_anchors(tmp_path, host_guest_mmvt_model_input):
     
     return
 
+def test_move_add_delete_input_anchors_sda(tmp_path, host_guest_mmvt_model_input):
+    """
+    Test common_prepare.py's ability to move, add, and delete anchors
+    in the model.
+    """
+    tmp_bd_settings = host_guest_mmvt_model_input.sda_settings_input
+    host_guest_mmvt_model_input.sda_settings_input = None
+    host_guest_mmvt_model_input.root_directory = os.path.join(
+        tmp_path, "host_guest_mmvt_2")
+    host_guest_mmvt_model_input.cv_inputs[0].input_anchors[0].radius = 0.06
+    host_guest_mmvt_model_input.cv_inputs[0].input_anchors[0]\
+        .upper_milestone_radius = 0.11
+    host_guest_mmvt_model_input.cv_inputs[0].input_anchors[1]\
+        .lower_milestone_radius = 0.11
+    os.chdir(TEST_DIRECTORY)
+    model2, model2_xml_path \
+        = prepare.prepare(host_guest_mmvt_model_input, force_overwrite=True)
+    model_dir = os.path.dirname(model2_xml_path)
+    model2.anchor_rootdir = os.path.abspath(model_dir)
+    assert model2.anchors[0].variables["r_0"] == 0.06
+    assert model2.anchors[0].milestones[0].variables['radius'] == 0.11
+    assert model2.anchors[1].milestones[0].variables['radius'] == 0.11
+    assert len(model2.anchors) == 14
+    assert model2.num_anchors == 14
+    assert len(glob.glob(os.path.join(model2.anchor_rootdir, "anchor_*"))) == 13
+    
+    # Add anchor
+    new_input_anchor = common_cv.Spherical_cv_anchor()
+    new_input_anchor.radius = 0.1
+    new_input_anchor.starting_amber_params = base.Amber_params()
+    host_guest_mmvt_model_input.cv_inputs[0].input_anchors.insert(
+        1, new_input_anchor)
+    host_guest_mmvt_model_input.cv_inputs[0].input_anchors[0]\
+        .upper_milestone_radius = None
+    host_guest_mmvt_model_input.cv_inputs[0].input_anchors[2]\
+        .lower_milestone_radius = None
+    host_guest_mmvt_model_input.root_directory = os.path.join(
+        tmp_path, "host_guest_mmvt_3")
+    os.chdir(TEST_DIRECTORY)
+    model3, model3_xml_path \
+        = prepare.prepare(host_guest_mmvt_model_input, force_overwrite=False)
+    model_dir = os.path.dirname(model3_xml_path)
+    model3.anchor_rootdir = os.path.abspath(model_dir)
+    assert model3.anchors[1].variables["r_0"] == 0.1
+    assert model3.anchors[1].milestones[0].variables['radius'] == 0.08
+    assert model3.anchors[1].milestones[1].variables['radius'] == 0.125
+    assert len(model3.anchors) == 15
+    assert model3.num_anchors == 15
+    assert len(glob.glob(os.path.join(model3.anchor_rootdir, "anchor_*"))) == 14
+    
+    # Delete anchor
+    host_guest_mmvt_model_input.cv_inputs[0].input_anchors.pop(1)
+    host_guest_mmvt_model_input.sda_settings_input = tmp_bd_settings
+    host_guest_mmvt_model_input.root_directory = os.path.join(
+        tmp_path, "host_guest_mmvt_4")
+    os.chdir(TEST_DIRECTORY)
+    model4, model4_xml_path \
+        = prepare.prepare(host_guest_mmvt_model_input, force_overwrite=False)
+    model_dir = os.path.dirname(model4_xml_path)
+    model4.anchor_rootdir = os.path.abspath(model_dir)
+    assert model4.anchors[0].milestones[0].variables['radius'] == 0.105
+    assert model4.anchors[1].milestones[0].variables['radius'] == 0.105
+    assert model4.anchors[1].milestones[1].variables['radius'] == 0.2
+    assert len(model4.anchors) == 14
+    assert model4.num_anchors == 14
+    assert len(glob.glob(os.path.join(model4.anchor_rootdir, "anchor_*"))) == 13
+    
+    # adjust BD milestone location
+    host_guest_mmvt_model_input.cv_inputs[0].input_anchors[-3]\
+        .upper_milestone_radius = 1.65
+    host_guest_mmvt_model_input.cv_inputs[0].input_anchors[-2]\
+        .lower_milestone_radius = 1.65
+    host_guest_mmvt_model_input.cv_inputs[0].input_anchors[-2]\
+        .radius = 1.75
+    host_guest_mmvt_model_input.cv_inputs[0].input_anchors[-2]\
+        .upper_milestone_radius = 1.85
+    host_guest_mmvt_model_input.cv_inputs[0].input_anchors[-1]\
+        .lower_milestone_radius = 1.85
+    host_guest_mmvt_model_input.cv_inputs[0].input_anchors[-1]\
+        .radius = 1.95
+    host_guest_mmvt_model_input.root_directory = os.path.join(
+        tmp_path, "host_guest_mmvt_5")
+    os.chdir(TEST_DIRECTORY)
+    model5, model5_xml_path \
+        = prepare.prepare(host_guest_mmvt_model_input, force_overwrite=False)
+    model_dir = os.path.dirname(model5_xml_path)
+    model5.anchor_rootdir = os.path.abspath(model_dir)
+    assert model5.k_on_info.bd_milestones[0].outer_milestone\
+        .variables["radius"] == 1.85
+    assert model5.k_on_info.bd_milestones[0].inner_milestone\
+        .variables["radius"] == 1.65
+    
+    # delete BD calculation
+    host_guest_mmvt_model_input.sda_settings_input = None
+    host_guest_mmvt_model_input.root_directory = os.path.join(
+        tmp_path, "host_guest_mmvt_6")
+    os.chdir(TEST_DIRECTORY)
+    model6, model6_xml_path \
+        = prepare.prepare(host_guest_mmvt_model_input, force_overwrite=True)
+    model_dir = os.path.dirname(model6_xml_path)
+    model6.anchor_rootdir = os.path.abspath(model_dir)
+    
+    return
+
 def test_modify_model(tmp_path, host_guest_mmvt_model_input):
     """
     Test the ability to modify models from the input and save the

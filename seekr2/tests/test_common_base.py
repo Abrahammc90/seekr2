@@ -130,26 +130,26 @@ def test_Cuda_platform_settings():
     assert properties["CudaPrecision"] == "mixed"
     return
 
-def test_model_get_type(host_guest_mmvt_model, host_guest_elber_model):
+def test_model_get_type(host_guest_mmvt_sda_model, host_guest_elber_model):
     """
     Assure that the model.get_type() function is working properly
     """
-    assert host_guest_mmvt_model.get_type() == "mmvt"
+    assert host_guest_mmvt_sda_model.get_type() == "mmvt"
     assert host_guest_elber_model.get_type() == "elber"
-    host_guest_mmvt_model.calculation_type = "wrong"
+    host_guest_mmvt_sda_model.calculation_type = "wrong"
     with pytest.raises(Exception) as e_info:
-        host_guest_mmvt_model.get_type()
+        host_guest_mmvt_sda_model.get_type()
     return
 
-def test_model_get_timestep(host_guest_mmvt_model):
+def test_model_get_timestep(host_guest_mmvt_sda_model):
     """
     Assure that the model.get_type() function is working properly
     """
-    assert host_guest_mmvt_model.get_timestep() == 0.002
+    assert host_guest_mmvt_sda_model.get_timestep() == 0.002
     return
 
-def test_model_get_bulk_index(host_guest_mmvt_model, toy_multi_model):
-    assert host_guest_mmvt_model.get_bulk_index() == 13
+def test_model_get_bulk_index(host_guest_mmvt_sda_model, toy_multi_model):
+    assert host_guest_mmvt_sda_model.get_bulk_index() == 13
     assert toy_multi_model.get_bulk_index() == None
     return
 

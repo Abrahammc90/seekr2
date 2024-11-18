@@ -136,20 +136,20 @@ def test_get_last_bounce(tmp_path):
     assert runner_openmm.get_last_bounce(data_file1) == 13
     return
 
-def test_saveCheckpoint(host_guest_mmvt_model):
-    host_guest_mmvt_model.calculation_settings.num_production_steps = 10
-    host_guest_mmvt_model.openmm_settings.cuda_platform_settings = None
-    host_guest_mmvt_model.openmm_settings.reference_platform = True
-    myanchor = host_guest_mmvt_model.anchors[1]
+def test_saveCheckpoint(host_guest_mmvt_sda_model):
+    host_guest_mmvt_sda_model.calculation_settings.num_production_steps = 10
+    host_guest_mmvt_sda_model.openmm_settings.cuda_platform_settings = None
+    host_guest_mmvt_sda_model.openmm_settings.reference_platform = True
+    myanchor = host_guest_mmvt_sda_model.anchors[1]
     mmvt_output_filename = os.path.join(
-        host_guest_mmvt_model.anchor_rootdir, myanchor.directory, "prod", 
+        host_guest_mmvt_sda_model.anchor_rootdir, myanchor.directory, "prod", 
         "%s%d.%s" % (mmvt_cv_base.OPENMMVT_BASENAME, 1, 
                              mmvt_cv_base.OPENMMVT_EXTENSION))
-    runner = runner_openmm.Runner_openmm(host_guest_mmvt_model, myanchor)
+    runner = runner_openmm.Runner_openmm(host_guest_mmvt_sda_model, myanchor)
     default_output_file, state_file_prefix, restart_index = runner.prepare(
         force_overwrite=True)
     my_sim_openmm = mmvt_sim_openmm.create_sim_openmm(
-        host_guest_mmvt_model, myanchor, mmvt_output_filename)
+        host_guest_mmvt_sda_model, myanchor, mmvt_output_filename)
     #assert not os.path.exists(runner.restart_checkpoint_filename)
     if os.path.exists(runner.restart_checkpoint_filename):
         os.remove(runner.restart_checkpoint_filename)
@@ -163,72 +163,72 @@ def test_saveCheckpoint(host_guest_mmvt_model):
             print("line:", line)
     assert lastline.startswith("CHECKPOINT")
 
-def test_Runner_openmm_default(host_guest_mmvt_model):
-    host_guest_mmvt_model.calculation_settings.num_production_steps = 10
-    host_guest_mmvt_model.calculation_settings.restart_checkpoint_interval = 10
-    host_guest_mmvt_model.openmm_settings.cuda_platform_settings = None
-    host_guest_mmvt_model.openmm_settings.reference_platform = True
-    myanchor = host_guest_mmvt_model.anchors[1]
+def test_Runner_openmm_default(host_guest_mmvt_sda_model):
+    host_guest_mmvt_sda_model.calculation_settings.num_production_steps = 10
+    host_guest_mmvt_sda_model.calculation_settings.restart_checkpoint_interval = 10
+    host_guest_mmvt_sda_model.openmm_settings.cuda_platform_settings = None
+    host_guest_mmvt_sda_model.openmm_settings.reference_platform = True
+    myanchor = host_guest_mmvt_sda_model.anchors[1]
     mmvt_output_filename = os.path.join(
-        host_guest_mmvt_model.anchor_rootdir, myanchor.directory, "prod", 
+        host_guest_mmvt_sda_model.anchor_rootdir, myanchor.directory, "prod", 
         "%s%d.%s" % (mmvt_cv_base.OPENMMVT_BASENAME, 1, 
                              mmvt_cv_base.OPENMMVT_EXTENSION))
-    runner = runner_openmm.Runner_openmm(host_guest_mmvt_model, myanchor)
+    runner = runner_openmm.Runner_openmm(host_guest_mmvt_sda_model, myanchor)
     default_output_file, state_file_prefix, restart_index = runner.prepare(
         force_overwrite=True)
     my_sim_openmm = mmvt_sim_openmm.create_sim_openmm(
-        host_guest_mmvt_model, myanchor, mmvt_output_filename)
+        host_guest_mmvt_sda_model, myanchor, mmvt_output_filename)
     runner.run(my_sim_openmm, False)
     assert os.path.exists(mmvt_output_filename)
     
     # restart
-    host_guest_mmvt_model.calculation_settings.num_production_steps = 20
+    host_guest_mmvt_sda_model.calculation_settings.num_production_steps = 20
     mmvt_output_filename = os.path.join(
-        host_guest_mmvt_model.anchor_rootdir, myanchor.directory, "prod", 
+        host_guest_mmvt_sda_model.anchor_rootdir, myanchor.directory, "prod", 
         "%s%d.%s" % (mmvt_cv_base.OPENMMVT_BASENAME, 2, 
                              mmvt_cv_base.OPENMMVT_EXTENSION))
-    runner = runner_openmm.Runner_openmm(host_guest_mmvt_model, myanchor)
+    runner = runner_openmm.Runner_openmm(host_guest_mmvt_sda_model, myanchor)
     default_output_file, state_file_prefix, restart_index = runner.prepare(
         restart=True)
     my_sim_openmm = mmvt_sim_openmm.create_sim_openmm(
-        host_guest_mmvt_model, myanchor, mmvt_output_filename)
+        host_guest_mmvt_sda_model, myanchor, mmvt_output_filename)
     runner.run(my_sim_openmm, True, restart_index=restart_index)
     return
 
 @pytest.mark.needs_cuda
-def test_Runner_openmm_default_cuda(host_guest_mmvt_model):
-    host_guest_mmvt_model.calculation_settings.num_production_steps = 1000
-    myanchor = host_guest_mmvt_model.anchors[1]
+def test_Runner_openmm_default_cuda(host_guest_mmvt_sda_model):
+    host_guest_mmvt_sda_model.calculation_settings.num_production_steps = 1000
+    myanchor = host_guest_mmvt_sda_model.anchors[1]
     mmvt_output_filename = os.path.join(
-        host_guest_mmvt_model.anchor_rootdir, myanchor.directory, "prod", 
+        host_guest_mmvt_sda_model.anchor_rootdir, myanchor.directory, "prod", 
         "%s%d.%s" % (mmvt_cv_base.OPENMMVT_BASENAME, 1, 
                              mmvt_cv_base.OPENMMVT_EXTENSION))
-    runner = runner_openmm.Runner_openmm(host_guest_mmvt_model, myanchor)
+    runner = runner_openmm.Runner_openmm(host_guest_mmvt_sda_model, myanchor)
     default_output_file, state_file_prefix, restart_index = runner.prepare(
         force_overwrite=True)
     my_sim_openmm = mmvt_sim_openmm.create_sim_openmm(
-        host_guest_mmvt_model, myanchor, mmvt_output_filename)
+        host_guest_mmvt_sda_model, myanchor, mmvt_output_filename)
     runner.run(my_sim_openmm, False)
     assert os.path.exists(mmvt_output_filename)
     return
 
-def test_Runner_openmm_load_state(host_guest_mmvt_model):
-    host_guest_mmvt_model.calculation_settings.num_production_steps = 10
-    host_guest_mmvt_model.calculation_settings.restart_checkpoint_interval = 10
-    host_guest_mmvt_model.openmm_settings.cuda_platform_settings = None
-    host_guest_mmvt_model.openmm_settings.reference_platform = True
-    myanchor = host_guest_mmvt_model.anchors[1]
+def test_Runner_openmm_load_state(host_guest_mmvt_sda_model):
+    host_guest_mmvt_sda_model.calculation_settings.num_production_steps = 10
+    host_guest_mmvt_sda_model.calculation_settings.restart_checkpoint_interval = 10
+    host_guest_mmvt_sda_model.openmm_settings.cuda_platform_settings = None
+    host_guest_mmvt_sda_model.openmm_settings.reference_platform = True
+    myanchor = host_guest_mmvt_sda_model.anchors[1]
     mmvt_output_filename = os.path.join(
-        host_guest_mmvt_model.anchor_rootdir, myanchor.directory, "prod", 
+        host_guest_mmvt_sda_model.anchor_rootdir, myanchor.directory, "prod", 
         "%s%d.%s" % (mmvt_cv_base.OPENMMVT_BASENAME, 1, 
                              mmvt_cv_base.OPENMMVT_EXTENSION))
-    loading_state_filename = os.path.join(host_guest_mmvt_model.anchor_rootdir, 
+    loading_state_filename = os.path.join(host_guest_mmvt_sda_model.anchor_rootdir, 
                                           "start.state")
-    runner = runner_openmm.Runner_openmm(host_guest_mmvt_model, myanchor)
+    runner = runner_openmm.Runner_openmm(host_guest_mmvt_sda_model, myanchor)
     default_output_file, state_file_prefix, restart_index = runner.prepare(
         force_overwrite=True)
     my_sim_openmm = mmvt_sim_openmm.create_sim_openmm(
-        host_guest_mmvt_model, myanchor, mmvt_output_filename)
+        host_guest_mmvt_sda_model, myanchor, mmvt_output_filename)
     my_sim_openmm.simulation.saveState(loading_state_filename)
     runner.run(my_sim_openmm, False, load_state_file=loading_state_filename)
     assert os.path.exists(mmvt_output_filename)
@@ -297,68 +297,68 @@ def test_runner_openmm_elber(host_guest_elber_model):
     runner.run(my_sim_openmm, False)
     return
     
-def test_runner_openmm_save_states(host_guest_mmvt_model):
-    host_guest_mmvt_model.calculation_settings.num_production_steps = 10
-    host_guest_mmvt_model.openmm_settings.cuda_platform_settings = None
-    host_guest_mmvt_model.openmm_settings.reference_platform = True
-    myanchor = host_guest_mmvt_model.anchors[1]
+def test_runner_openmm_save_states(host_guest_mmvt_sda_model):
+    host_guest_mmvt_sda_model.calculation_settings.num_production_steps = 10
+    host_guest_mmvt_sda_model.openmm_settings.cuda_platform_settings = None
+    host_guest_mmvt_sda_model.openmm_settings.reference_platform = True
+    myanchor = host_guest_mmvt_sda_model.anchors[1]
     mmvt_output_filename = os.path.join(
-        host_guest_mmvt_model.anchor_rootdir, myanchor.directory, "prod", 
+        host_guest_mmvt_sda_model.anchor_rootdir, myanchor.directory, "prod", 
         "%s%d.%s" % (mmvt_cv_base.OPENMMVT_BASENAME, 1, 
                              mmvt_cv_base.OPENMMVT_EXTENSION))
-    runner = runner_openmm.Runner_openmm(host_guest_mmvt_model, myanchor)
+    runner = runner_openmm.Runner_openmm(host_guest_mmvt_sda_model, myanchor)
     default_output_file, state_file_prefix, restart_index = runner.prepare(
         force_overwrite=True, save_state_file=True)
     my_sim_openmm = mmvt_sim_openmm.create_sim_openmm(
-        host_guest_mmvt_model, myanchor, mmvt_output_filename)
+        host_guest_mmvt_sda_model, myanchor, mmvt_output_filename)
     runner.run(my_sim_openmm, False)
     assert os.path.exists(mmvt_output_filename)
     return
     
-def test_runner_openmm_save_states_until_all_bounds(host_guest_mmvt_model):
-    host_guest_mmvt_model.calculation_settings.num_production_steps = 10
-    host_guest_mmvt_model.openmm_settings.cuda_platform_settings = None
-    host_guest_mmvt_model.openmm_settings.reference_platform = True
-    myanchor = host_guest_mmvt_model.anchors[1]
+def test_runner_openmm_save_states_until_all_bounds(host_guest_mmvt_sda_model):
+    host_guest_mmvt_sda_model.calculation_settings.num_production_steps = 10
+    host_guest_mmvt_sda_model.openmm_settings.cuda_platform_settings = None
+    host_guest_mmvt_sda_model.openmm_settings.reference_platform = True
+    myanchor = host_guest_mmvt_sda_model.anchors[1]
     mmvt_output_filename = os.path.join(
-        host_guest_mmvt_model.anchor_rootdir, myanchor.directory, "prod", 
+        host_guest_mmvt_sda_model.anchor_rootdir, myanchor.directory, "prod", 
         "%s%d.%s" % (mmvt_cv_base.OPENMMVT_BASENAME, 1, 
                              mmvt_cv_base.OPENMMVT_EXTENSION))
-    runner = runner_openmm.Runner_openmm(host_guest_mmvt_model, myanchor)
+    runner = runner_openmm.Runner_openmm(host_guest_mmvt_sda_model, myanchor)
     default_output_file, state_file_prefix, restart_index = runner.prepare(
         force_overwrite=True, save_state_boundaries=True)
     my_sim_openmm = mmvt_sim_openmm.create_sim_openmm(
-        host_guest_mmvt_model, myanchor, mmvt_output_filename)
+        host_guest_mmvt_sda_model, myanchor, mmvt_output_filename)
     runner.run(my_sim_openmm, False)
     assert os.path.exists(mmvt_output_filename)
     return
 
-def test_mmvt_swarm(host_guest_mmvt_model):
+def test_mmvt_swarm(host_guest_mmvt_sda_model):
     """
     If a multi-frame trajectory is provided as the input PDB, then an MMVT
     swarm should be started.
     """
     swarm_file_name = "hostguest_at0.5_swarm.pdb"
-    host_guest_mmvt_model.anchors[0].amber_params.pdb_coordinates_filename \
+    host_guest_mmvt_sda_model.anchors[0].amber_params.pdb_coordinates_filename \
         = swarm_file_name
     anchor_building_dir = os.path.join(
-        host_guest_mmvt_model.anchor_rootdir, 
-        host_guest_mmvt_model.anchors[0].directory, 
-        host_guest_mmvt_model.anchors[0].building_directory)
+        host_guest_mmvt_sda_model.anchor_rootdir, 
+        host_guest_mmvt_sda_model.anchors[0].directory, 
+        host_guest_mmvt_sda_model.anchors[0].building_directory)
     assert os.path.exists(anchor_building_dir)
     src_filename = os.path.join(TEST_DATA_DIRECTORY, swarm_file_name)
     dest_filename = os.path.join(anchor_building_dir, swarm_file_name)
     shutil.copyfile(src_filename, dest_filename)
-    host_guest_mmvt_model.calculation_settings.num_production_steps = 10
-    host_guest_mmvt_model.openmm_settings.cuda_platform_settings = None
-    host_guest_mmvt_model.openmm_settings.reference_platform = True
-    myanchor = host_guest_mmvt_model.anchors[0]
+    host_guest_mmvt_sda_model.calculation_settings.num_production_steps = 10
+    host_guest_mmvt_sda_model.openmm_settings.cuda_platform_settings = None
+    host_guest_mmvt_sda_model.openmm_settings.reference_platform = True
+    myanchor = host_guest_mmvt_sda_model.anchors[0]
     for i in range(10):
-        runner = runner_openmm.Runner_openmm(host_guest_mmvt_model, myanchor)
+        runner = runner_openmm.Runner_openmm(host_guest_mmvt_sda_model, myanchor)
         default_output_file, state_file_prefix, restart_index = runner.prepare(
             force_overwrite=True, swarm_index=i)
         my_sim_openmm = mmvt_sim_openmm.create_sim_openmm(
-            host_guest_mmvt_model, myanchor, default_output_file)
+            host_guest_mmvt_sda_model, myanchor, default_output_file)
         runner.run(my_sim_openmm, False)
         assert os.path.exists(default_output_file)
     

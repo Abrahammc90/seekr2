@@ -158,11 +158,16 @@ class SDA_settings_input(Serializer):
     
     Attributes:
     -----------
-    sda_dir : str
-        A path to the SDA programs directory. Can be left as an
+    sda_bin_dir : str
+        A path to the SDA binary directory. Can be left as an
         empty string if the $PATH environmental variable points to
         SDA's directory.
-        
+    
+    sda_auxi_dir : str
+        A path to the SDA auxiliary directory. Can be left as an
+        empty string if the $PATH environmental variable points to
+        SDA's directory.
+
     hydropro_dir : str
         A path to the HYDROpro program directory. Can be left as an
         empty string if the $PATH environmental variable points to
@@ -206,7 +211,8 @@ class SDA_settings_input(Serializer):
     """
     
     def __init__(self):
-        self.sda_dir = ""
+        self.sda_bin_dir = ""
+        self.sda_auxi_dir = ""
         self.hydropro_dir = ""
         self.solutes = []
         self.apbs_grid_spacing = -1.0
@@ -563,7 +569,8 @@ def model_factory(model_input, use_absolute_directory=False):
         raise Exception("Invalid MD program entered:", 
                         model_input.md_program)
     
-    if model_input.bd_program.lower() == "browndye":
+    if model_input.browndye_settings_input is not None and \
+        model_input.bd_program.lower() == "browndye":
         k_on_info = base.K_on_info()
         if model_input.browndye_settings_input.ions is None:
             model_input.browndye_settings_input.ions = []
@@ -585,7 +592,8 @@ def model_factory(model_input, use_absolute_directory=False):
             = model_input.browndye_settings_input.n_threads
         model.k_on_info = k_on_info
 
-    elif model_input.bd_program.lower() == "sda":
+    elif model_input.sda_settings_input is not None and \
+        model_input.bd_program.lower() == "sda":
         k_on_info = base.K_on_info()
         if model_input.sda_settings_input.ions is None:
             model_input.sda_settings_input.ions = []
@@ -593,8 +601,10 @@ def model_factory(model_input, use_absolute_directory=False):
         k_on_info.b_surface_num_trajectories \
             = model_input.sda_settings_input.num_b_surface_trajectories
         model.sda_settings = base.SDA_settings()
-        model.sda_settings.sda_dir \
-            = model_input.sda_settings_input.sda_dir
+        model.sda_settings.sda_bin_dir \
+            = model_input.sda_settings_input.sda_bin_dir
+        model.sda_settings.sda_auxi_dir \
+            = model_input.sda_settings_input.sda_auxi_dir
         model.sda_settings.hydropro_dir = \
             model_input.sda_settings_input.hydropro_dir
         model.sda_settings.solutes = copy.deepcopy(model_input.sda_settings_input.solutes)
@@ -1158,14 +1168,11 @@ def generate_sda_files(model, rootdir):
         
         hydropro_dir = os.path.expanduser(model.sda_settings.hydropro_dir)
 
-        reaction_filename = "p2.rxna"
-        abs_reaction_path = os.path.join(b_surface_dir, reaction_filename)
-
-        runner_sda.make_pdb_noh(model, b_surface_dir)
-        runner_sda.run_hydropro(model, b_surface_dir, hydropro_dir)
-        runner_sda.make_sda_grids(model, b_surface_dir, model.sda_settings.sda_dir)
+        runner_sda.make_pdb_noh(model, rootdir)
+        runner_sda.run_hydropro(model, rootdir, hydropro_dir)
+        runner_sda.make_sda_grids(model, rootdir, model.sda_settings.sda_bin_dir)
         
-        runner_sda.make_add_atoms(model, b_surface_dir)
+        runner_sda.make_add_atoms(model, rootdir)
 
         ghost_atoms_rec = []
         ghost_atoms_lig = []
@@ -1175,11 +1182,11 @@ def generate_sda_files(model, rootdir):
             #print("adding ghost atom to file:", receptor_pqr_filename)
             ghost_atom_rec = \
                 sim_sda.create_ghost_atom_from_atoms_center_of_mass(receptor_pqr_filename,
-                    reaction_filename, bd_milestone.receptor_indices)
+                    bd_milestone.receptor_indices)
             #print("adding ghost atom to file:", ligand_pqr_filename)
             ghost_atom_lig = \
                 sim_sda.create_ghost_atom_from_atoms_center_of_mass(ligand_pqr_filename,
-                    reaction_filename, bd_milestone.ligand_indices)
+                    bd_milestone.ligand_indices)
             ghost_atoms_rec.append(ghost_atom_rec)
             ghost_atoms_lig.append(ghost_atom_lig)
 
@@ -1187,7 +1194,7 @@ def generate_sda_files(model, rootdir):
         #model.sda_settings.ghost_atoms_rec = ghost_atoms_rec
         #model.sda_settings.ghost_atoms_lig = ghost_atoms_lig
 
-        runner_sda.make_sda_reaction(abs_reaction_path, ghost_atoms_rec, ghost_atoms_lig)
+        runner_sda.make_sda_reaction(model, rootdir, ghost_atoms_rec, ghost_atoms_lig)
 
         #runner_sda.make_sda_grids()
 

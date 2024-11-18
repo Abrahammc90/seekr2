@@ -57,9 +57,9 @@ def test_cleanse_bd_outputs(tmp_path):
     assert len(os.listdir(directory)) == 0
     return
 
-def test_make_browndye_input_xml(host_guest_mmvt_model):
+def test_make_browndye_input_xml(host_guest_mmvt_sda_model):
     num_bd_steps = 1000
-    bd_directory = os.path.join(host_guest_mmvt_model.anchor_rootdir, 
+    bd_directory = os.path.join(host_guest_mmvt_sda_model.anchor_rootdir, 
                                 "b_surface")
     receptor_xml_filename = os.path.join(bd_directory, "hostguest_receptor.xml")
     ligand_xml_filename = os.path.join(bd_directory, "hostguest_ligand.xml")
@@ -67,10 +67,10 @@ def test_make_browndye_input_xml(host_guest_mmvt_model):
     if os.path.exists(input_xml_filename):
         os.remove(input_xml_filename)
     debye_length, reaction_filename = runner_browndye2.make_browndye_input_xml(
-        host_guest_mmvt_model, host_guest_mmvt_model.anchor_rootdir, 
+        host_guest_mmvt_sda_model, host_guest_mmvt_sda_model.anchor_rootdir, 
         receptor_xml_filename, ligand_xml_filename, 
         num_bd_steps, bd_directory=None, make_apbs_mode=False)
-    bd_directory = os.path.join(host_guest_mmvt_model.anchor_rootdir, 
+    bd_directory = os.path.join(host_guest_mmvt_sda_model.anchor_rootdir, 
                                 "b_surface")
     assert float(debye_length) > 0.0
     assert os.path.exists(input_xml_filename)
@@ -79,39 +79,39 @@ def test_make_browndye_input_xml(host_guest_mmvt_model):
     if os.path.exists(apbs_input_xml_filename):
         os.remove(apbs_input_xml_filename)
     debye_length, reaction_filename = runner_browndye2.make_browndye_input_xml(
-        host_guest_mmvt_model, host_guest_mmvt_model.anchor_rootdir, 
+        host_guest_mmvt_sda_model, host_guest_mmvt_sda_model.anchor_rootdir, 
         receptor_xml_filename, ligand_xml_filename, 
         num_bd_steps, bd_directory="b_surface", make_apbs_mode=True)
     assert float(debye_length) > 0.0
     assert os.path.exists(apbs_input_xml_filename)
     return
 
-def test_make_browndye_reaction_xml(host_guest_mmvt_model):
-    bd_directory = os.path.join(host_guest_mmvt_model.anchor_rootdir, 
+def test_make_browndye_reaction_xml(host_guest_mmvt_sda_model):
+    bd_directory = os.path.join(host_guest_mmvt_sda_model.anchor_rootdir, 
                                 "b_surface")
     abs_reaction_path = os.path.join(bd_directory, "rxns.xml")
     runner_browndye2.make_browndye_reaction_xml(
-        host_guest_mmvt_model, abs_reaction_path)
+        host_guest_mmvt_sda_model, abs_reaction_path)
     assert os.path.exists(abs_reaction_path)
     return
 
-def test_modify_variables(host_guest_mmvt_model):
+def test_modify_variables(host_guest_mmvt_sda_model):
     """
     Test the function that modifies variables within the BD input xml.
     """
     bd_directory = os.path.join(
-        host_guest_mmvt_model.anchor_rootdir,
-        host_guest_mmvt_model.k_on_info.b_surface_directory)
+        host_guest_mmvt_sda_model.anchor_rootdir,
+        host_guest_mmvt_sda_model.k_on_info.b_surface_directory)
     print("host_guest_mmvt_model.anchor_rootdir:", 
-          host_guest_mmvt_model.anchor_rootdir)
-    assert os.path.exists(host_guest_mmvt_model.anchor_rootdir)
+          host_guest_mmvt_sda_model.anchor_rootdir)
+    assert os.path.exists(host_guest_mmvt_sda_model.anchor_rootdir)
     print("bd_directory:", bd_directory)
     assert os.path.exists(bd_directory)
     runner_browndye2.run_bd_top(
-        host_guest_mmvt_model.browndye_settings.browndye_bin_dir, 
+        host_guest_mmvt_sda_model.browndye_settings.browndye_bin_dir, 
         bd_directory, force_overwrite=True)
     runner_browndye2.modify_variables(
-        bd_directory, host_guest_mmvt_model.k_on_info.bd_output_glob, 
+        bd_directory, host_guest_mmvt_sda_model.k_on_info.bd_output_glob, 
         100, 4, 3456, "my_out.xml", restart=False,
         n_trajectories_per_output=25)
     simulation_filename_base = sim_browndye2.BROWNDYE_RECEPTOR + "_" \
@@ -130,9 +130,9 @@ def test_modify_variables(host_guest_mmvt_model):
     assert result == "25"
     return
 
-def test_runner_browndye2_b_surface_mmvt(host_guest_mmvt_model):
-    model = host_guest_mmvt_model
-    bd_directory = os.path.join(host_guest_mmvt_model.anchor_rootdir, 
+def test_runner_browndye2_b_surface_mmvt(host_guest_mmvt_sda_model):
+    model = host_guest_mmvt_sda_model
+    bd_directory = os.path.join(host_guest_mmvt_sda_model.anchor_rootdir, 
                                 "b_surface")
     runner_browndye2.run_bd_top(model.browndye_settings.browndye_bin_dir, 
                bd_directory, force_overwrite=True)

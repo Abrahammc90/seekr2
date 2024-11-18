@@ -200,6 +200,46 @@ def test_Data_sample_parse_browndye_results(host_guest_mmvt_model):
     compare_dicts(k_on_err, expected_k_ons_err)
     return
 
+def test_Data_sample_parse_sda_results(host_guest_mmvt_sda_model):
+    test_sda_results_filename = os.path.join(
+        TEST_DIRECTORY, "data/sample_sda_results.out")
+    b_surface_directory = os.path.join(
+        host_guest_mmvt_sda_model.anchor_rootdir, "b_surface")
+    b_surface_results_file = os.path.join(b_surface_directory, "sda.out")
+    data_sample = common_analyze.Data_sample(host_guest_mmvt_sda_model)
+    copyfile(test_sda_results_filename, b_surface_results_file)
+    data_sample.parse_sda_results(bootstrap=True)
+    assert len(data_sample.bd_transition_counts) == 2
+    expected_counts_b_surface = {"total": 10000, "escaped": 9291, 12: 742,
+                                 11: 709}
+    counts_b_surface = data_sample.bd_transition_counts["b_surface"]
+    compare_dicts(counts_b_surface, expected_counts_b_surface)
+    expected_counts_bd_milestone0 = {"total": 742, "escaped": 742-709,
+                                     11: 709}
+    counts_bd_milestone0 = data_sample.bd_transition_counts[0]
+    compare_dicts(counts_bd_milestone0, expected_counts_bd_milestone0)
+    
+    expected_b_surface_probabilities = {"total": 1.0, "escaped": 9291/10000,
+                                        12: 742/10000, 11: 709/10000}
+    b_surface_probabilities \
+        = data_sample.bd_transition_probabilities["b_surface"]
+    compare_dicts(b_surface_probabilities, expected_b_surface_probabilities)
+    
+    expected_probabilities_bd_milestone0 = {
+        "total": 1.0, "escaped": (742-709)/742, 11: 709/742}
+    probabilities_bd_milestone0 \
+        = data_sample.bd_transition_probabilities[0]
+    compare_dicts(probabilities_bd_milestone0, 
+                  expected_probabilities_bd_milestone0)
+    
+    expected_k_ons = {"total": 18620000000.0, 
+                      "escaped": 17935838249.02376,
+                      12: 2572935964.5179048, 
+                      11: 2466085935.696044}
+    k_ons = data_sample.b_surface_k_ons_src
+    compare_dicts(expected_k_ons, k_ons)
+    return
+
 def test_Data_sample_compute_rate_matrix(toy_mmvt_model):
     data_sample = common_analyze.Data_sample(toy_mmvt_model)
     n = toy_mmvt_model.num_milestones

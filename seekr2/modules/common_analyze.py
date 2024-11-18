@@ -350,7 +350,7 @@ def sda_run_compute_rate_constant(model, calculate_kon_program,
     Parameters:
     -----------
     calculate_kon_program : str
-        The exact command to to calculate the kon values and their
+        Protram to calculate the kon values and their
         standard deviation.
     
     sda_output_file : str
@@ -489,6 +489,12 @@ def sda_run_compute_rate_constant(model, calculate_kon_program,
         
 
     assert k_ons.keys() == transition_counts_bd_milestones.keys()
+
+    print(transition_counts_bd_milestones)
+    print(reaction_probabilities)
+    print(k_ons)
+    print(k_on_errors_bd_milestones)
+    exit()
 
     return k_ons, k_on_errors_bd_milestones, reaction_probabilities, \
             transition_counts_bd_milestones
@@ -668,8 +674,8 @@ class Data_sample():
                     k_ons_src, k_on_errors_src, reaction_probabilities, \
                     transition_counts = \
                         sda_run_compute_rate_constant(self.model,
-                            os.path.join(self.model.sda_settings.sda_dir,
-                                         "auxi/Bootstrap_multiCPU.py"), 
+                            os.path.join(self.model.sda_settings.sda_auxi_dir,
+                                         "Bootstrap_multiCPU.py"), 
                             output_file_list,
                             os.path.join(self.model.anchor_rootdir, \
                                          self.model.k_on_info.b_surface_directory),
@@ -678,8 +684,8 @@ class Data_sample():
                     k_ons_src, k_on_errors_src, reaction_probabilities, \
                     transition_counts = \
                         sda_run_compute_rate_constant(self.model,
-                            os.path.join(self.model.sda_settings.sda_dir, 
-                                         "bin/nos2rates"),
+                            os.path.join(self.model.sda_settings.sda_bin_dir, 
+                                         "nos2rates"),
                             output_file_list,
                             os.path.join(self.model.anchor_rootdir, 
                                          self.model.k_on_info.b_surface_directory))

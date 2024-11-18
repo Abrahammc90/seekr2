@@ -727,6 +727,7 @@ class Input():
     def __init__(self):
         self.nrun = -1
         self.timemax = 0
+        self.dseed = 0
         self.type = "sda_2proteins"
         self.solutes = []
         self.solutes_path = ""
@@ -934,8 +935,8 @@ class Reaction():
     """
     
     def __init__(self):
-        self.ghost_atoms_rec = []
-        self.ghost_atoms_lig = []
+        self.atoms_rec = []
+        self.atoms_lig = []
         return
     
     def make_input(self):
@@ -944,7 +945,7 @@ class Reaction():
         """
         
         rxna_lines = []
-        for ghost_atom_rec, ghost_atom_lig in zip(self.ghost_atoms_rec, self.ghost_atoms_lig):
+        for ghost_atom_rec, ghost_atom_lig in zip(self.atoms_rec, self.atoms_lig):
             reaction = "CNONS " + ghost_atom_rec + " |" + "{:>9.2f}".format(8) + \
             "| " + ghost_atom_lig
             rxna_lines.append(reaction)
@@ -1299,17 +1300,16 @@ class Hydropro():
                 element_two_letters = atomname[:2]
                 if element_two_letters in AMU_dict:
                     MW += AMU_dict[element_two_letters]
-                else:
+                elif element_one_letter in AMU_dict:
                     MW += AMU_dict[element_one_letter]
+                else:
+                    print("WARNING:", atomname, "not recognized." )
         return MW
 
 
 
-
-
-
 def create_ghost_atom_from_atoms_center_of_mass(
-        pqr_filename, reaction_filename, atom_index_list, new_pqr_filename=None,
+        pqr_filename, atom_index_list, new_pqr_filename=None,
         center_molecule=True):
     """
     Add a ghost atom to a PQR file at the location of the center

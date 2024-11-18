@@ -218,7 +218,8 @@
         </cv_input>
     </cv_inputs>
     <sda_settings_input class="SDA_settings_input">
-        <sda_dir>~/seekr_project/sda7/</sda_dir>
+        <sda_bin_dir>~/seekr_project/sda7/bin/</sda_bin_dir>
+        <sda_auxi_dir>~/seekr_project/sda7/auxi/</sda_auxi_dir>
         <hydropro_dir>~/hydropro/</hydropro_dir>
         <type_calculation>sda_2proteins</type_calculation>
         <solutes>
