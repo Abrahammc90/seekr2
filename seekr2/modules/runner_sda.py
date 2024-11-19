@@ -228,8 +228,8 @@ def make_sda_grids(model, rootdir, sda_bin_dir, sda_auxi_dir=None, bd_directory=
         sda_grid_inputs.write()
 
         if solute.type == "Small_organic_compound":
-            test_charge_bin = sda_auxi_dir, \
-                              "Kon-rates-SmallMolecule/Generate-ECMSites-SmallMol/ECM_ligand.py" + \
+            test_charge_bin = os.path.join(sda_auxi_dir, \
+                              "Kon-rates-SmallMolecule/Generate-ECMSites-SmallMol/ECM_ligand.py") + \
             " > tcha_" + str(solute_idx) + ".out"
             
             test_charge_command = test_charge_bin + " " + pqr_filename

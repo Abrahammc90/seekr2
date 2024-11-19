@@ -490,12 +490,6 @@ def sda_run_compute_rate_constant(model, calculate_kon_program,
 
     assert k_ons.keys() == transition_counts_bd_milestones.keys()
 
-    print(transition_counts_bd_milestones)
-    print(reaction_probabilities)
-    print(k_ons)
-    print(k_on_errors_bd_milestones)
-    exit()
-
     return k_ons, k_on_errors_bd_milestones, reaction_probabilities, \
             transition_counts_bd_milestones
 

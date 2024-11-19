@@ -1170,7 +1170,8 @@ def generate_sda_files(model, rootdir):
 
         runner_sda.make_pdb_noh(model, rootdir)
         runner_sda.run_hydropro(model, rootdir, hydropro_dir)
-        runner_sda.make_sda_grids(model, rootdir, model.sda_settings.sda_bin_dir)
+        runner_sda.make_sda_grids(model, rootdir, model.sda_settings.sda_bin_dir, 
+                                  model.sda_settings.sda_auxi_dir)
         
         runner_sda.make_add_atoms(model, rootdir)
 
