@@ -38,28 +38,28 @@ END GROUP
 
 GROUP = Solute_Grid
     nb_solute = 1
-    pdb_filename = /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_receptor_noh.pdb
-    trans_diffusion = 0.03555
-    rot_diffusion = 0.000573
+    pdb_filename = /home/abraham/test_mmvt_openmm_sda_surface/b_surface/p1_noh.pdb
+    trans_diffusion = 0.0
+    rot_diffusion = 0.0
     rotate = 1
     surface = 0
-    epf = /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_receptor_ep.grd
-    qef = /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_receptor.echa
-    edf = /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_receptor_ed.grd
-    hdf = /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_receptor_hd.grd
+    epf = /home/abraham/test_mmvt_openmm_sda_surface/b_surface/p1_ep.grd
+    qef = /home/abraham/test_mmvt_openmm_sda_surface/b_surface/p1.echa
+    edf = /home/abraham/test_mmvt_openmm_sda_surface/b_surface/p1_ed.grd
+    hdf = /home/abraham/test_mmvt_openmm_sda_surface/b_surface/p1_hd.grd
 END GROUP
 
 GROUP = Solute_Grid
     nb_solute = 1
-    pdb_filename = /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_ligand_noh.pdb
-    trans_diffusion = 0.10859999999999999
-    rot_diffusion = 0.01591
+    pdb_filename = /home/abraham/test_mmvt_openmm_sda_surface/b_surface/p2_noh.pdb
+    trans_diffusion = 0.053380000000000004
+    rot_diffusion = 0.002078
     rotate = 1
     surface = 0
-    epf = /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_ligand_ep.grd
-    qef = /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_ligand.echa
-    edf = /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_ligand_ed.grd
-    hdf = /home/abraham/test_mmvt_openmm_sda/b_surface/hostguest_ligand_hd.grd
+    epf = /home/abraham/test_mmvt_openmm_sda_surface/b_surface/p2_ep.grd
+    qef = /home/abraham/test_mmvt_openmm_sda_surface/b_surface/p2.echa
+    edf = /home/abraham/test_mmvt_openmm_sda_surface/b_surface/p2_ed.grd
+    hdf = /home/abraham/test_mmvt_openmm_sda_surface/b_surface/p2_hd.grd
 END GROUP
 
 GROUP = Geometry

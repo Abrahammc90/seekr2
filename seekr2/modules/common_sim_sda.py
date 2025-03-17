@@ -447,7 +447,7 @@ class Solute_Grid():
     rotate : integer, default 1.
         Defines whether the solute can rotate or not. If 0,
         rotational diffusion coefficient is not used.
-    surface: integer, Default 0.
+    surface: str or None, Default None.
         Defines if the solute is a surface.
     flex: integer or None, Default None
         Defines if a conformational ensamble is read for the solute.
@@ -800,8 +800,8 @@ class Input():
                                                 pdb_filename)
             if hasattr(solute, 'rotate'):
                 self.solute_grid.rotate = solute.solute_grid.rotate
-            if hasattr(solute, 'surface'):
-                self.solute_grid.surface = solute.solute_grid.surface
+            if hasattr(solute, 'surface') and solute.solute_grid.surface == "yes":
+                self.solute_grid.surface = 1
             self.solute_grid.epf = os.path.join(self.solutes_path, \
                                                 solute_name + "_ep.grd")
             self.solute_grid.qef = os.path.join(self.solutes_path, \
@@ -1232,6 +1232,7 @@ class Hydropro():
         file.write("-1          !Number of intervals\n")
         file.write("0,              !Number of trials for MC calculation of covolume\n")
         file.write("1               !IDIF=1 (yes) for full diffusion tensors\n")
+        file.write("*")
         file.close()
         print("The input file of HYDROpro is stored in the same directory with the name hydropro.dat")
 
@@ -1334,7 +1335,8 @@ def create_ghost_atom_from_atoms_center_of_mass(
     if new_pqr_filename is None:
         new_pqr_filename = pqr_filename
     pqr_struct = parmed.load_file(pqr_filename, skip_bonds=True)
-    
+
+
     # Compute the center of mass for the selected group of atoms
     center_of_mass = np.array([[0., 0., 0.]])
     total_mass = 0.0
@@ -1348,41 +1350,59 @@ def create_ghost_atom_from_atoms_center_of_mass(
     center_of_mass = center_of_mass / total_mass
     
     if center_molecule:
+        print("calculating center of mass")
         # Compute the center of mass of the entire molecule to be transposed
         mol_center_of_mass = np.array([[0., 0., 0.]])
         mol_total_mass = 0.0
+        step_range = max(len(pqr_struct.atoms) // 100, 1)
+        
+        pqr_coordinates = pqr_struct.coordinates
         for atom_index, atom in enumerate(pqr_struct.atoms):
-            atom_pos = pqr_struct.coordinates[atom_index,:]
+            atom_pos = pqr_coordinates[atom_index,:]
             atom_mass = atom.mass
             if atom_mass == 0.0:
                 atom_mass = 0.0001
             mol_center_of_mass += atom_mass * atom_pos
             mol_total_mass += atom_mass
+            step_range = max(len(pqr_struct.atoms) // 100, 1)
+            if atom_index % step_range == 0:
+                print(f"{((atom_index + 1) / len(pqr_struct.atoms)) * 100:.0f}%")
+
         mol_center_of_mass = mol_center_of_mass / mol_total_mass
-    
     ghost_atom = parmed.Atom(name="GHO", mass=0.0, charge=0.0, solvent_radius=0.0)
     ghost_structure = parmed.Structure()
     ghost_structure.add_atom(ghost_atom, "GHO", 1)
     ghost_structure.coordinates = np.array(center_of_mass)
+
     pqr_complex = pqr_struct + ghost_structure
     for residue in pqr_complex.residues:
         residue.chain = ""
-    
+
+
     if center_molecule:
+        print("centering molecule")
+        step_range = max(len(pqr_complex.atoms) // 100, 1)
         new_coordinates = np.zeros(pqr_complex.coordinates.shape)
+        pqr_coordinates = pqr_complex.coordinates
         for atom_index in range(len(pqr_complex.atoms)):
-            new_coordinates[atom_index,:] = pqr_complex.coordinates[atom_index,:] \
+            new_coordinates[atom_index,:] = pqr_coordinates[atom_index,:] \
                 - mol_center_of_mass[0,:]
+            
+            step_range = max(len(pqr_complex.atoms) // 100, 1)
+            if atom_index % step_range == 0:
+                print(f"{((atom_index + 1) / len(pqr_complex.atoms)) * 100:.0f}%")
                 
         pqr_complex.coordinates = new_coordinates
+                
+
     
-    pqr_complex.save(new_pqr_filename, overwrite=True)
-
     ghost_index = len(pqr_complex.atoms)
-
     x, y, z = ghost_structure.coordinates[0][:]
     ghost_atom = "ATOM{:>7s} {:4s} {:3s}  {:>4s}{:>12.3f}{:>8.3f}{:>8.3f}".format(
-    str(ghost_index), ghost_atom.name, ghost_atom.residue.name, str(ghost_index), 
+    str(ghost_index), ghost_atom.name, ghost_atom.residue.name, str(ghost_atom.residue.idx), 
     x, y, z)
-    
+
+
+    pqr_complex.save(new_pqr_filename, overwrite=True)
+
     return ghost_atom

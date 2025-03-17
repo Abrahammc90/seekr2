@@ -91,15 +91,22 @@ def make_pdb_noh(model, rootdir, bd_directory=None):
         solute_name = ".".join(pqr_filename.split(".")[:-1])
         pdb_noh_lines = []
         
-        for line in pqr_lines:
+        atom_id = 1
+        for I in range(len(pqr_lines)):
+            line = pqr_lines[I]
             if line.startswith("ATOM") or line.startswith("HETATM"):
-                atomname = line[12:16].strip("")
+                atomname = line[12:16].strip()
                 if atomname[0] == "H" or atomname[0].isnumeric():
                     continue
-                pdb_noh_lines.append(line[:54] + "  1.00  0.00   \n")
+                before_id = line[:6]
+                after_id = line[11:]
+                new_line = before_id + "{:>5s}".format(str(I+1)) + after_id
+                pdb_noh_lines.append(new_line[:54] + "  1.00  0.00   \n")
+                atom_id += 1
+                #print(atomname)
             else:
                 pdb_noh_lines.append(line)
-
+        #exit()
         with open(solute_name + "_noh.pdb", "w") as pdb:
             for line in pdb_noh_lines:
                 pdb.write(line)
@@ -227,20 +234,48 @@ def make_sda_grids(model, rootdir, sda_bin_dir, sda_auxi_dir=None, bd_directory=
 
         sda_grid_inputs.write()
 
-        if solute.type == "Small_organic_compound":
-            test_charge_bin = os.path.join(sda_auxi_dir, \
-                              "Kon-rates-SmallMolecule/Generate-ECMSites-SmallMol/ECM_ligand.py") + \
-            " > tcha_" + str(solute_idx) + ".out"
-            
-            test_charge_command = test_charge_bin + " " + pqr_filename
-        else:
+        assert solute.type.lower() in ["protein", "non_protein"], "Solute type " + solute.type.lower() + " not recognized."
+
+        protein_surface_test_charge_command = None
+        surface_test_charge_command = None
+        test_charge_command = None
+        if solute.type.lower() == "non_protein":
+            if solute.solute_grid.surface.lower() == "yes":
+                surface_test_charge_bin = os.path.join(sda_auxi_dir, \
+                                  "Kon-rates-SmallMolecule/Generate-ECMSites-SmallMol/ECM_surface.py")
+
+                surface_test_charge_command = "python " + surface_test_charge_bin + " " + pqr_filename + \
+                " > tcha_" + str(solute_idx) + ".out"
+            else:
+                test_charge_bin = os.path.join(sda_auxi_dir, \
+                                  "Kon-rates-SmallMolecule/Generate-ECMSites-SmallMol/ECM_ligand.py")
+
+                test_charge_command = "python " + test_charge_bin + " " + pqr_filename + \
+                " > tcha_" + str(solute_idx) + ".out"
+        elif solute.type.lower() == "protein":
             test_charge_bin = os.path.join(sda_bin_dir, \
                                                "ecm_mksites")
             test_charge_command = test_charge_bin + " " + pdb_filename + " " + \
                 tcha + " > tcha_" + str(solute_idx) + ".out"
+            if solute.solute_grid.surface.lower() == "yes":
+                protein_surface_test_charge_bin = os.path.join(sda_auxi_dir, \
+                              "Kon-rates-SmallMolecule/Generate-ECMSites-SmallMol/ECM_surface.py")
+                protein_surface_test_charge_command = "python " + protein_surface_test_charge_bin + " " + pqr_filename + " -threshold 3" + \
+                " > tcha_" + str(solute_idx) + ".out"
+            
         
-        print("running command", test_charge_command)
-        os.system(test_charge_command)
+        if test_charge_command != None:
+            print("running command", test_charge_command)
+            os.system(test_charge_command)
+        if surface_test_charge_command != None:
+            print("running command", surface_test_charge_command)
+            os.system(surface_test_charge_command)
+        if protein_surface_test_charge_command != None:
+            print("running command", protein_surface_test_charge_command)
+            os.system("mv " + tcha + " tmp.tcha")
+            os.system(protein_surface_test_charge_command)
+            os.system("cat " + pqr_filename.split(".")[0] + ".tcha >> tmp.tcha")
+            os.system("mv tmp.tcha " + tcha)
 
 
         effective_charge_bin = os.path.join(sda_bin_dir, \
@@ -466,29 +501,37 @@ def run_hydropro(model, rootdir, hydropro_dir, bd_directory=None):
 
         hydropro_filename = "hydropro.dat"
 
-        if solute.type.lower() == "small_organic_compound":
-            hydropro.write_input(hydropro_filename, small=True)
+        #print(solute.solute_grid.surface.lower())
+        #exit()
+
+        if solute.solute_grid.surface.lower() == "yes":
+            solute.solute_grid.trans_diffusion = 0.000
+            solute.solute_grid.rot_diffusion = 0.000
+        
         else:
-            hydropro.write_input(hydropro_filename, small=False)
+            if solute.type.lower() == "non_protein":
+                hydropro.write_input(hydropro_filename, small=True)
+            else:
+                hydropro.write_input(hydropro_filename, small=False)
 
-        hydropro_bin = os.path.join(hydropro_dir, "hydropro10-lnx.exe")
-        hydropro_command = hydropro_bin + " " + hydropro_filename + " " + \
-            solute_pdbfile + " > " + \
-            solute_name+"_noh-hydropro.out"
-        
-        print("Ignore the forrtl error")
-        os.system(hydropro_command)
+            hydropro_bin = os.path.join(hydropro_dir, "hydropro10-lnx.exe")
+            hydropro_command = hydropro_bin + " " + hydropro_filename + " " + \
+                solute_pdbfile + " > " + \
+                solute_name+"_noh-hydropro.out"
 
-        #output_file = solute_name + "_noh-res.txt"
-        for root, dirs, files in os.walk("."):
-            for filename in files:
-                if solute_name in filename and "res.txt" in filename:
-                    output_file = filename
-        
-        trans_diffusion, rot_diffusion = hydropro.read_output(output_file)
+            #print("Ignore the forrtl error")
+            os.system(hydropro_command)
 
-        solute.solute_grid.trans_diffusion = trans_diffusion
-        solute.solute_grid.rot_diffusion = rot_diffusion
+            #output_file = solute_name + "_noh-res.txt"
+            for root, dirs, files in os.walk("."):
+                for filename in files:
+                    if solute_name in filename and "res.txt" in filename:
+                        output_file = filename
+
+            trans_diffusion, rot_diffusion = hydropro.read_output(output_file)
+
+            solute.solute_grid.trans_diffusion = trans_diffusion
+            solute.solute_grid.rot_diffusion = rot_diffusion
     
     os.chdir(current_dir)
 

@@ -610,6 +610,12 @@ def model_factory(model_input, use_absolute_directory=False):
         model.sda_settings.solutes = copy.deepcopy(model_input.sda_settings_input.solutes)
         for solute in model.sda_settings.solutes:
             solute.pqr_filename = os.path.basename(solute.pqr_filename)
+            #assert solute.solute_grid.surface.lower() in ["yes", "no"], \
+            #"Surface option " + solute.solute_grid.surface + " not recognized."
+            #if solute.solute_grid.surface.lower() == "yes":
+            #    solute.solute_grid.surface = 1
+            #else:
+            #    solute.solute_grid.surface = 0
         model.sda_settings.apbs_grid_spacing \
             = model_input.sda_settings_input.apbs_grid_spacing
         model.k_on_info = k_on_info
@@ -1159,15 +1165,22 @@ def generate_sda_files(model, rootdir):
     if model.using_bd():
         b_surface_dir = os.path.join(
             rootdir, model.k_on_info.b_surface_directory)
-        receptor = model.sda_settings.solutes[0]
-        receptor_pqr_filename = os.path.join(
-            b_surface_dir, os.path.basename(receptor.pqr_filename))
-        ligand = model.sda_settings.solutes[1]
-        ligand_pqr_filename = os.path.join(
-            b_surface_dir, os.path.basename(ligand.pqr_filename))
+        receptor = None
+        ligand = None
+        for solute in model.sda_settings.solutes:
+            #if solute.solute_grid.surface != None and solute.solute_grid.surface == "yes":
+            #    continue
+            if receptor == None:
+                receptor = solute
+                receptor_pqr_filename = os.path.join(
+                    b_surface_dir, os.path.basename(receptor.pqr_filename))
+            elif ligand == None:
+                ligand = solute
+                ligand_pqr_filename = os.path.join(
+                    b_surface_dir, os.path.basename(ligand.pqr_filename))
         
         hydropro_dir = os.path.expanduser(model.sda_settings.hydropro_dir)
-
+        
         runner_sda.make_pdb_noh(model, rootdir)
         runner_sda.run_hydropro(model, rootdir, hydropro_dir)
         runner_sda.make_sda_grids(model, rootdir, model.sda_settings.sda_bin_dir, 

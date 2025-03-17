@@ -916,7 +916,7 @@ class Solute_Grid(Serializer):
         self.real_net_charge = None
         self.surface_charge_dens = None
         self.rotate = 1
-        self.surface = 0
+        self.surface = "no"
         self.flex = None
         self.image_charge = None
         self.dh_radius = None
