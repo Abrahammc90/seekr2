@@ -1364,7 +1364,6 @@ def create_ghost_atom_from_atoms_center_of_mass(
                 atom_mass = 0.0001
             mol_center_of_mass += atom_mass * atom_pos
             mol_total_mass += atom_mass
-            step_range = max(len(pqr_struct.atoms) // 100, 1)
             if atom_index % step_range == 0:
                 print(f"{((atom_index + 1) / len(pqr_struct.atoms)) * 100:.0f}%")
 
@@ -1374,7 +1373,8 @@ def create_ghost_atom_from_atoms_center_of_mass(
     ghost_structure.add_atom(ghost_atom, "GHO", 1)
     ghost_structure.coordinates = np.array(center_of_mass)
 
-    pqr_complex = pqr_struct + ghost_structure
+    #pqr_complex = pqr_struct + ghost_structure
+    pqr_complex = pqr_struct
     for residue in pqr_complex.residues:
         residue.chain = ""
 
@@ -1384,11 +1384,13 @@ def create_ghost_atom_from_atoms_center_of_mass(
         step_range = max(len(pqr_complex.atoms) // 100, 1)
         new_coordinates = np.zeros(pqr_complex.coordinates.shape)
         pqr_coordinates = pqr_complex.coordinates
-        for atom_index in range(len(pqr_complex.atoms)):
+        for atom_index, atom in enumerate(pqr_struct.atoms):
             new_coordinates[atom_index,:] = pqr_coordinates[atom_index,:] \
                 - mol_center_of_mass[0,:]
             
-            step_range = max(len(pqr_complex.atoms) // 100, 1)
+            atom.occupancy = atom.charge
+            atom.bfactor = atom.solvent_radius
+
             if atom_index % step_range == 0:
                 print(f"{((atom_index + 1) / len(pqr_complex.atoms)) * 100:.0f}%")
                 
@@ -1403,6 +1405,6 @@ def create_ghost_atom_from_atoms_center_of_mass(
     x, y, z)
 
 
-    pqr_complex.save(new_pqr_filename, overwrite=True)
+    pqr_complex.save(new_pqr_filename, overwrite=True, format='pdb')
 
     return ghost_atom

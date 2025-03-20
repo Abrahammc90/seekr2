@@ -243,9 +243,16 @@ def make_sda_grids(model, rootdir, sda_bin_dir, sda_auxi_dir=None, bd_directory=
             if solute.solute_grid.surface.lower() == "yes":
                 surface_test_charge_bin = os.path.join(sda_auxi_dir, \
                                   "Kon-rates-SmallMolecule/Generate-ECMSites-SmallMol/ECM_surface.py")
+                
+                if os.path.exists(surface_test_charge_bin):
+                    protein_surface_test_charge_command = "python " + protein_surface_test_charge_bin + " " + pqr_filename + " -threshold 3" + \
+                    " > tcha_" + str(solute_idx) + ".out"
+                else:
+                    surface_test_charge_bin = os.path.join(sda_auxi_dir, \
+                                  "Kon-rates-SmallMolecule/Generate-ECMSites-SmallMol/ECM_ligand.py")
 
-                surface_test_charge_command = "python " + surface_test_charge_bin + " " + pqr_filename + \
-                " > tcha_" + str(solute_idx) + ".out"
+                    surface_test_charge_command = "python " + surface_test_charge_bin + " " + pqr_filename + \
+                    " > tcha_" + str(solute_idx) + ".out"
             else:
                 test_charge_bin = os.path.join(sda_auxi_dir, \
                                   "Kon-rates-SmallMolecule/Generate-ECMSites-SmallMol/ECM_ligand.py")
@@ -260,8 +267,14 @@ def make_sda_grids(model, rootdir, sda_bin_dir, sda_auxi_dir=None, bd_directory=
             if solute.solute_grid.surface.lower() == "yes":
                 protein_surface_test_charge_bin = os.path.join(sda_auxi_dir, \
                               "Kon-rates-SmallMolecule/Generate-ECMSites-SmallMol/ECM_surface.py")
-                protein_surface_test_charge_command = "python " + protein_surface_test_charge_bin + " " + pqr_filename + " -threshold 3" + \
-                " > tcha_" + str(solute_idx) + ".out"
+                if os.path.exists(protein_surface_test_charge_bin):
+                    protein_surface_test_charge_command = "python " + protein_surface_test_charge_bin + " " + pqr_filename + " -threshold 3" + \
+                    " > tcha_" + str(solute_idx) + ".out"
+                else:
+                    protein_surface_test_charge_bin = os.path.join(sda_auxi_dir, \
+                              "Kon-rates-SmallMolecule/Generate-ECMSites-SmallMol/ECM_surface.py")
+                    protein_surface_test_charge_command = "python " + protein_surface_test_charge_bin + " " + pqr_filename + \
+                    " > tcha_" + str(solute_idx) + ".out"
             
         
         if test_charge_command != None:

@@ -1181,13 +1181,7 @@ def generate_sda_files(model, rootdir):
         
         hydropro_dir = os.path.expanduser(model.sda_settings.hydropro_dir)
         
-        runner_sda.make_pdb_noh(model, rootdir)
-        runner_sda.run_hydropro(model, rootdir, hydropro_dir)
-        runner_sda.make_sda_grids(model, rootdir, model.sda_settings.sda_bin_dir, 
-                                  model.sda_settings.sda_auxi_dir)
         
-        runner_sda.make_add_atoms(model, rootdir)
-
         ghost_atoms_rec = []
         ghost_atoms_lig = []
 
@@ -1210,6 +1204,12 @@ def generate_sda_files(model, rootdir):
 
         runner_sda.make_sda_reaction(model, rootdir, ghost_atoms_rec, ghost_atoms_lig)
 
+        runner_sda.make_pdb_noh(model, rootdir)
+        runner_sda.run_hydropro(model, rootdir, hydropro_dir)
+        runner_sda.make_sda_grids(model, rootdir, model.sda_settings.sda_bin_dir, 
+                                  model.sda_settings.sda_auxi_dir)
+        
+        runner_sda.make_add_atoms(model, rootdir)
         #runner_sda.make_sda_grids()
 
         runner_sda.make_sda_input(model, rootdir, model.k_on_info.b_surface_num_trajectories)
