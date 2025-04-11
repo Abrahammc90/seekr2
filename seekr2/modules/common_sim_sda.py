@@ -746,8 +746,8 @@ class Input():
         self.xmax = None
         self.ymin = None
         self.ymax = None
-        self.zmin = None
-        self.zmax = None
+        self.zmin = 0
+        self.zmax = 200
         self.surface = 0
         self.rotate = 1
         self.win0 = 3.0
@@ -813,6 +813,12 @@ class Input():
             if hasattr(solute, 'lj_repf'):
                 self.solute_grid.lj_repf = os.path.join(self.solutes_path, \
                                                 solute_name + "_ljrep.grd")
+
+            assert solute.solute_grid.surface.lower() in ["yes", "no"], \
+                "Surface option " + solute.solute_grid.surface + " not recognized."
+            if solute.solute_grid.surface == "yes":
+                self.solute_grid.surface = 1
+                self.surface = 1
             self.solute_grid.make_group()
             self.solute_grids.append(self.solute_grid)
 
@@ -828,17 +834,45 @@ class Input():
         self.geometry = Geometry()
         self.geometry.type = self.geom_type
         self.geometry.start_pos = self.start_pos
-        self.geometry.pbc = self.pbc
-        if self.geometry.type == "sphere" or self.geometry.type == "nambox":
-            self.geometry.c = self.c
+            
         if self.geometry.type == "box" or self.geometry.type == "nambox":
-            self.geometry.xmin = self.xmin
-            self.geometry.xmax = self.xmax
-            self.geometry.ymin = self.ymin
-            self.geometry.ymax = self.ymax
-            self.geometry.zmin = self.zmin
-            self.geometry.zmax = self.zmax
-        self.geometry.surface = self.surface   
+            receptor_filename = self.solutes[0].pqr_filename
+            receptor_filename = os.path.join(self.solutes_path, \
+                                                receptor_filename)
+            receptor_struct = parmed.load_file(receptor_filename, skip_bonds=True)
+            receptor_coordinates = receptor_struct.coordinates
+            for atom_index, atom in enumerate(receptor_struct.atoms):
+                x, y, z = receptor_coordinates[atom_index,:]
+                if not self.xmin or x < self.xmin:
+                    self.xmin = x
+                if not self.xmax or x > self.xmax:
+                    self.xmax = x
+                if not self.ymin or y < self.ymin:
+                    self.ymin = y
+                if not self.ymax or y > self.ymax:
+                    self.ymax = y
+
+            self.xmin += 5
+            self.xmax -= 5
+            self.ymin += 5
+            self.ymax -= 5
+            self.pbc = 1
+
+        if self.geometry.type == "sphere":
+            self.zmin = None
+            self.zmax = None
+        elif self.geometry.type == "box":
+            self.c = None
+
+        self.geometry.pbc = self.pbc
+        self.geometry.c = self.c
+        self.geometry.xmin = self.xmin
+        self.geometry.xmax = self.xmax
+        self.geometry.ymin = self.ymin
+        self.geometry.ymax = self.ymax
+        self.geometry.zmin = self.zmin
+        self.geometry.zmax = self.zmax
+        self.geometry.surface = self.surface
         self.geometry.make_group()
         
         self.timestep = Timestep()
@@ -1350,11 +1384,11 @@ def create_ghost_atom_from_atoms_center_of_mass(
     center_of_mass = center_of_mass / total_mass
     
     if center_molecule:
-        print("calculating center of mass")
+        #print("calculating center of mass")
         # Compute the center of mass of the entire molecule to be transposed
         mol_center_of_mass = np.array([[0., 0., 0.]])
         mol_total_mass = 0.0
-        step_range = max(len(pqr_struct.atoms) // 100, 1)
+        #step_range = max(len(pqr_struct.atoms) // 100, 1)
         
         pqr_coordinates = pqr_struct.coordinates
         for atom_index, atom in enumerate(pqr_struct.atoms):
@@ -1364,8 +1398,8 @@ def create_ghost_atom_from_atoms_center_of_mass(
                 atom_mass = 0.0001
             mol_center_of_mass += atom_mass * atom_pos
             mol_total_mass += atom_mass
-            if atom_index % step_range == 0:
-                print(f"{((atom_index + 1) / len(pqr_struct.atoms)) * 100:.0f}%")
+            #if atom_index % step_range == 0:
+            #    print(f"{((atom_index + 1) / len(pqr_struct.atoms)) * 100:.0f}%")
 
         mol_center_of_mass = mol_center_of_mass / mol_total_mass
     ghost_atom = parmed.Atom(name="GHO", mass=0.0, charge=0.0, solvent_radius=0.0)
@@ -1380,8 +1414,8 @@ def create_ghost_atom_from_atoms_center_of_mass(
 
 
     if center_molecule:
-        print("centering molecule")
-        step_range = max(len(pqr_complex.atoms) // 100, 1)
+        #print("centering molecule")
+        #step_range = max(len(pqr_complex.atoms) // 100, 1)
         new_coordinates = np.zeros(pqr_complex.coordinates.shape)
         pqr_coordinates = pqr_complex.coordinates
         for atom_index, atom in enumerate(pqr_struct.atoms):
@@ -1391,8 +1425,8 @@ def create_ghost_atom_from_atoms_center_of_mass(
             atom.occupancy = atom.charge
             atom.bfactor = atom.solvent_radius
 
-            if atom_index % step_range == 0:
-                print(f"{((atom_index + 1) / len(pqr_complex.atoms)) * 100:.0f}%")
+            #if atom_index % step_range == 0:
+            #    print(f"{((atom_index + 1) / len(pqr_complex.atoms)) * 100:.0f}%")
                 
         pqr_complex.coordinates = new_coordinates
                 

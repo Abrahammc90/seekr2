@@ -400,6 +400,9 @@ def make_sda_input(model, rootdir, num_b_surface_trajectories,
     sda_input.solutes = model.sda_settings.solutes
     sda_input.total_grids = len(sda_input.solutes)
 
+    if model.sda_settings.geom_type is not None:
+        sda_input.geom_type = model.sda_settings.geom_type
+
     total_solutes = 0
     for solute in model.sda_settings.solutes:
         total_solutes += solute.solute_grid.nb_solute

@@ -214,13 +214,13 @@ class SDA_settings_input(Serializer):
         self.sda_bin_dir = ""
         self.sda_auxi_dir = ""
         self.hydropro_dir = ""
+        self.geom_type = None
         self.solutes = []
         self.apbs_grid_spacing = -1.0
         self.ions = []
         self.num_b_surface_trajectories = -1
         self.receptor_indices = []
         self.ligand_indices = []
-        self.geometry = ""
         self.atoms = []
 
 class Toy_settings_input(Serializer):
@@ -620,6 +620,8 @@ def model_factory(model_input, use_absolute_directory=False):
             = model_input.sda_settings_input.apbs_grid_spacing
         model.k_on_info = k_on_info
         model.sda_settings.atoms = model_input.sda_settings_input.atoms
+        if model_input.sda_settings_input.geom_type is not None:
+            model.sda_settings.geom_type = model_input.sda_settings_input.geom_type
         
 
     if model_input.toy_settings_input is not None:

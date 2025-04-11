@@ -645,6 +645,7 @@ class SDA_settings(Serializer):
     def __init__(self):
         self.sda_bin_dir = ""
         self.sda_auxi_dir = ""
+        self.geom_type = None
         self.solutes = []
         self.atoms = []
         return

@@ -224,7 +224,7 @@
         <type_calculation>sda_2proteins</type_calculation>
         <solutes>
             <solute class="Solute">
-                <type>Small_organic_compound</type>
+                <type>non_protein</type>
                 <apbs_grid_dime>65</apbs_grid_dime>
                 <apbs_grid_spacing>0.5</apbs_grid_spacing>
                 <dielectric>2.0</dielectric>
@@ -234,7 +234,7 @@
                 </solute_grid>
             </solute>
             <solute class="Solute">
-                <type>Small_organic_compound</type>
+                <type>non_protein</type>
                 <apbs_grid_dime>65</apbs_grid_dime>
                 <apbs_grid_spacing>0.5</apbs_grid_spacing>
                 <dielectric>2.0</dielectric>
