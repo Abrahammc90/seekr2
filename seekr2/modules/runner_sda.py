@@ -407,6 +407,8 @@ def make_sda_input(model, rootdir, num_b_surface_trajectories,
     for solute in model.sda_settings.solutes:
         total_solutes += solute.solute_grid.nb_solute
     sda_input.total_solutes = total_solutes
+    if total_solutes > 2:
+        sda_input.type = "sdamm"
     sda_input.solutes_path = bd_directory
 
     sda_input.write(os.path.join(bd_directory, SDA_INPUT))

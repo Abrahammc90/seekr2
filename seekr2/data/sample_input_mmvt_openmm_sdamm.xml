@@ -8,7 +8,7 @@
     <temperature>298.15</temperature>
     <pressure>1.0</pressure>
     <ensemble>nvt</ensemble>
-    <root_directory>~/test_mmvt_openmm_sda_surface/</root_directory>
+    <root_directory>~/test_mmvt_openmm_sdamm/</root_directory>
     <bd_program>sda</bd_program>
     <md_program>openmm</md_program> 
     <constraints>HBonds</constraints>
@@ -235,7 +235,17 @@
                 <solute_grid class="Solute_Grid">
                     <nb_solute>1</nb_solute>
                 </solute_grid>
-            </solute>    
+            </solute>
+            <solute class="Solute">
+                <type>Non_protein</type>
+                <apbs_grid_dime>129</apbs_grid_dime>
+                <apbs_grid_spacing>1</apbs_grid_spacing>
+                <dielectric>2.0</dielectric>
+                <pqr_filename>~/a2a_project/p2.pqr</pqr_filename>
+                <solute_grid class="Solute_Grid">
+                    <nb_solute>3</nb_solute>
+                </solute_grid>
+            </solute> 
         </solutes>
         <atoms>
             <atom class="Atomic_parameters">
